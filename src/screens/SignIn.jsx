@@ -70,19 +70,7 @@ export default function SignIn({ onBack, onSignUp, onSuccess }) {
           <button style={{ background: "none", border: "none", cursor: "pointer", color: "#1e2a4a", fontWeight: 600, fontSize: 14, fontFamily: "inherit" }}>¿Olvidaste tu contraseña?</button>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 32 }}>
-          <div style={{ flex: 1, height: 1, background: "#d0d0e8" }} />
-          <div style={{ width: 8, height: 8, borderRadius: "50%", border: "1.5px solid #b0b0d0" }} />
-          <div style={{ flex: 1, height: 1, background: "#d0d0e8" }} />
-        </div>
-
-        <p style={{ textAlign: "center", color: "#7b7fd4", fontSize: 14, marginBottom: 16 }}>También puedes iniciar<br />sesión con tu ClaveÚnica</p>
-        <button style={{ width: "100%", padding: "16px", borderRadius: 10, border: "none", background: "#7b7fd4", color: "white", fontSize: 15, fontWeight: 500, fontFamily: "inherit", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5"/><path d="M12 7v5l3 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
-          ClaveÚnica
-        </button>
-
-        <div style={{ textAlign: "center", marginTop: 24, paddingBottom: 40, fontSize: 14, color: "#888" }}>
+        <div style={{ textAlign: "center", fontSize: 14, color: "#888" }}>
           ¿No tienes cuenta?{" "}
           <button onClick={onSignUp} style={{ background: "none", border: "none", cursor: "pointer", color: "#1e2a4a", fontWeight: 600, fontSize: 14, fontFamily: "inherit" }}>Crear cuenta</button>
         </div>
