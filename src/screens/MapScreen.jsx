@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoicm9zYXJpb2NhbHZvIiwiYSI6ImNtcTV0cWNqNjAyeWI0OW9yM3k1czUxdGwifQ.vvfYtaplB7hQjmo9fqvPcg";
 
-const MAPBOX_STYLE = "mapbox://styles/mapbox/light-v11";
+const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36";
 
 const INSUMOS_MOCK = [
   { id: 1, lat: -33.4180, lng: -70.6060, titulo: "Insulina Novorapid Flexpen 100 UI/ML", usuario: "Cristina Fernandez - 5 Cartuchos 3 ML", distancia: "0.3", urgente: false },
@@ -37,29 +37,6 @@ export default function MapScreen() {
       });
 
       map.current.on("load", () => {
-        // Aplicar colores morados RESCAT
-        const layers = map.current.getStyle().layers;
-        layers.forEach(layer => {
-          if (layer.type === "fill") {
-            if (layer.id.includes("land") || layer.id.includes("background")) {
-              map.current.setPaintProperty(layer.id, "fill-color", "#f0f0f8");
-            }
-            if (layer.id.includes("building")) {
-              map.current.setPaintProperty(layer.id, "fill-color", "#e0e0f0");
-            }
-            if (layer.id.includes("water")) {
-              map.current.setPaintProperty(layer.id, "fill-color", "#c8c8ee");
-            }
-            if (layer.id.includes("park") || layer.id.includes("green")) {
-              map.current.setPaintProperty(layer.id, "fill-color", "#d8d8f0");
-            }
-          }
-          if (layer.type === "line") {
-            if (layer.id.includes("road") || layer.id.includes("street")) {
-              map.current.setPaintProperty(layer.id, "line-color", "#ffffff");
-            }
-          }
-        });
 
         // Agregar marcadores
         INSUMOS_MOCK.forEach(insumo => {
