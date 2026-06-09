@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const MAPBOX_TOKEN = "pk.eyJ1Ijoicm9zYXJpb2NhbHZvIiwiYSI6ImNtcTV0cWNqNjAyeWI0OW9yM3k1czUxdGwifQ.vvfYtaplB7hQjmo9fqvPcg";
 const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36";
 
 const INSUMOS_MOCK = [
