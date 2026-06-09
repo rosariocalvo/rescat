@@ -1,172 +1,229 @@
-import { useState, useEffect, useRef } from "react";
-import { supabase } from "../supabase";
+import { useEffect, useRef, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
+import mapboxgl from "mapbox-gl";
 
-const MAPBOX_TOKEN = "pk.eyJ1Ijoicm9zYXJpb2NhbHZvIiwiYSI6ImNtcTV0cWNqNjAyeWI0OW9yM3k1czUxdGwifQ.vvfYtaplB7hQjmo9fqvPcg";
-const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq76exby005s01qw8yh57wch";
-const ZOOM_POR_RADIO = { 2: 14, 5: 12.5, 10: 11.5 };
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);
 
-export default function MapScreen({ user }) {
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+// ─── íconos SVG exactos del diseño ────────────────────────────────────────
+
+const IconBack = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="white"/>
+  </svg>
+);
+
+export default function MapScreen({ user, onBack }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const userMarker = useRef(null);
-  const markersRef = useRef([]);
   const [radio, setRadio] = useState(2);
-  const [selectedInsumo, setSelectedInsumo] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
   const [publicaciones, setPublicaciones] = useState([]);
+  const [seleccionado, setSeleccionado] = useState(null);
+  const [userLocation, setUserLocation] = useState(null);
+  const markersRef = useRef([]);
 
-  const nombre = user?.user_metadata?.nombre_completo?.split(" ")[0]?.toUpperCase() ||
-    user?.email?.split("@")[0]?.toUpperCase() || "USUARIO";
+  const nombre = user?.user_metadata?.nombre || "Usuario";
+  const dc = user?.user_metadata?.dc || 240;
 
-  // Cargar publicaciones desde Supabase
   useEffect(() => {
-    const cargar = async () => {
-      const { data } = await supabase.from("publicaciones").select("*");
-      if (data) setPublicaciones(data);
-    };
-    cargar();
+    if (map.current) return;
 
-    // Suscripción en tiempo real
-    const channel = supabase.channel("publicaciones-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "publicaciones" }, cargar)
-      .subscribe();
-    return () => supabase.removeChannel(channel);
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: import.meta.env.VITE_MAPBOX_STYLE || "mapbox://styles/mapbox/light-v11",
+      center: [-70.6483, -33.4569],
+      zoom: 13,
+    });
+
+    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+    navigator.geolocation?.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation([longitude, latitude]);
+        map.current.flyTo({ center: [longitude, latitude], zoom: 14 });
+
+        new mapboxgl.Marker({ color: "#252E52" })
+          .setLngLat([longitude, latitude])
+          .addTo(map.current);
+      },
+      () => {}
+    );
   }, []);
 
-  // Actualizar pins cuando cambian publicaciones
   useEffect(() => {
-    if (!map.current || !window.mapboxgl) return;
+    fetchPublicaciones();
+  }, [radio, userLocation]);
+
+  async function fetchPublicaciones() {
+    const { data } = await supabase
+      .from("publicaciones")
+      .select("*")
+      .eq("estado", "activa");
+
+    if (!data) return;
+
+    let filtradas = data;
+    if (userLocation) {
+      filtradas = data.filter((p) => {
+        if (!p.latitud || !p.longitud) return false;
+        const d = distanciaKm(userLocation[1], userLocation[0], p.latitud, p.longitud);
+        return d <= radio;
+      });
+    }
+
+    setPublicaciones(filtradas);
+
     // Limpiar markers anteriores
-    markersRef.current.forEach(m => m.remove());
+    markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
-    publicaciones.forEach(pub => {
+    filtradas.forEach((p) => {
+      if (!p.latitud || !p.longitud) return;
       const el = document.createElement("div");
       el.style.cssText = `
-        width:${pub.urgente ? 16 : 12}px;
-        height:${pub.urgente ? 16 : 12}px;
-        border-radius:50%;
-        background:${pub.urgente ? "#e05c5c" : "#2d3561"};
-        border:2px solid white;
-        cursor:pointer;
-        box-shadow:0 2px 6px rgba(0,0,0,0.25);
+        width: 32px; height: 32px; border-radius: 50%;
+        background: ${p.urgente ? "#DC2626" : "#252E52"};
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 13px; font-weight: 700;
       `;
-      el.addEventListener("click", () => setSelectedInsumo(pub));
-      const marker = new window.mapboxgl.Marker(el)
-        .setLngLat([pub.longitud, pub.latitud])
+      el.innerHTML = p.urgente ? "🚨" : "💊";
+      el.addEventListener("click", () => setSeleccionado(p));
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([p.longitud, p.latitud])
         .addTo(map.current);
       markersRef.current.push(marker);
     });
-  }, [publicaciones]);
+  }
 
-  // Geolocation
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(pos => {
-      const coords = [pos.coords.longitude, pos.coords.latitude];
-      setUserLocation(coords);
-      if (map.current) {
-        map.current.flyTo({ center: coords, zoom: ZOOM_POR_RADIO[radio] });
-        if (userMarker.current) userMarker.current.remove();
-        const el = document.createElement("div");
-        el.style.cssText = `width:16px;height:16px;border-radius:50%;background:#7b7fd4;border:3px solid white;box-shadow:0 0 0 3px rgba(123,127,212,0.3);`;
-        userMarker.current = new window.mapboxgl.Marker(el).setLngLat(coords).addTo(map.current);
-      }
-    }, () => {});
-  }, []);
+  function distanciaKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
 
-  useEffect(() => {
-    if (map.current && userLocation) {
-      map.current.flyTo({ center: userLocation, zoom: ZOOM_POR_RADIO[radio], duration: 800 });
-    }
-  }, [radio]);
-
-  // Init map
-  useEffect(() => {
-    if (map.current) return;
-    const script = document.createElement("script");
-    script.src = "https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js";
-    script.onload = () => {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href = "https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css";
-      document.head.appendChild(link);
-      window.mapboxgl.accessToken = MAPBOX_TOKEN;
-      map.current = new window.mapboxgl.Map({
-        container: mapContainer.current,
-        style: MAPBOX_STYLE,
-        center: [-70.6060, -33.4180],
-        zoom: 14,
-      });
-      map.current.on("load", () => {
-        // Agregar pins de publicaciones existentes
-        publicaciones.forEach(pub => {
-          const el = document.createElement("div");
-          el.style.cssText = `width:${pub.urgente ? 16 : 12}px;height:${pub.urgente ? 16 : 12}px;border-radius:50%;background:${pub.urgente ? "#e05c5c" : "#2d3561"};border:2px solid white;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.25);`;
-          el.addEventListener("click", () => setSelectedInsumo(pub));
-          const marker = new window.mapboxgl.Marker(el).setLngLat([pub.longitud, pub.latitud]).addTo(map.current);
-          markersRef.current.push(marker);
-        });
-      });
-    };
-    document.head.appendChild(script);
-    return () => { if (map.current) { map.current.remove(); map.current = null; } };
-  }, []);
+  function distanciaTexto(p) {
+    if (!userLocation || !p.latitud) return "";
+    const d = distanciaKm(userLocation[1], userLocation[0], p.latitud, p.longitud);
+    return d < 1 ? `${(d * 1000).toFixed(0)} m` : `${d.toFixed(1)} km`;
+  }
 
   return (
-    <div style={{ height: "100%", position: "relative", background: "#eeeef8" }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, padding: "48px 20px 12px", background: "linear-gradient(to bottom, rgba(238,238,248,0.98) 75%, transparent)" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-          <img src="/logo-vector.svg" alt="RESCAT" style={{ height: 36 }} />
-          <div style={{ textAlign: "right" }}>
-            <p style={{ margin: 0, fontSize: 12, color: "#7b7fd4", fontFamily: "'Outfit', sans-serif" }}>HOLA, {nombre}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, justifyContent: "flex-end" }}>
-              <span style={{ fontSize: 13 }}>🌐</span>
-              <span style={{ fontSize: 16, fontWeight: 700, color: "#1e2a4a", fontFamily: "'Outfit', sans-serif" }}>240 DC</span>
-            </div>
+    <div style={{
+      maxWidth: 430, margin: "0 auto",
+      height: "100vh", display: "flex", flexDirection: "column",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif",
+      background: "#F5F6FA", overflow: "hidden",
+    }}>
+
+      {/* Header */}
+      <div style={{
+        background: "#252E52", padding: "48px 20px 16px",
+        color: "white",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <button
+            onClick={onBack}
+            style={{ background: "transparent", border: "none", cursor: "pointer", padding: 4 }}
+          >
+            <IconBack />
+          </button>
+          <div style={{ flex: 1, marginLeft: 8 }}>
+            <p style={{ margin: 0, fontSize: 11, opacity: 0.7 }}>Hola,</p>
+            <p style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>{nombre}</p>
+          </div>
+          <div style={{
+            background: "rgba(255,255,255,0.15)",
+            borderRadius: 10, padding: "5px 12px",
+            display: "flex", alignItems: "center", gap: 5,
+          }}>
+            <span>🪙</span>
+            <span style={{ fontWeight: 700 }}>{dc}</span>
           </div>
         </div>
+
+        {/* Pills de radio */}
         <div style={{ display: "flex", gap: 8 }}>
-          {[2, 5, 10].map(km => (
-            <button key={km} onClick={() => setRadio(km)} style={{
-              padding: "8px 18px", borderRadius: 20, border: "none",
-              background: radio === km ? "#1e2a4a" : "rgba(255,255,255,0.9)",
-              color: radio === km ? "white" : "#1e2a4a",
-              fontSize: 13, fontWeight: 600, fontFamily: "'Outfit', sans-serif",
-              cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            }}>{km} KM</button>
+          {[2, 5, 10].map((r) => (
+            <button
+              key={r}
+              onClick={() => setRadio(r)}
+              style={{
+                padding: "6px 16px", borderRadius: 20, border: "none",
+                background: radio === r ? "white" : "rgba(255,255,255,0.2)",
+                color: radio === r ? "#252E52" : "white",
+                fontWeight: 600, fontSize: 13, cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {r} km
+            </button>
           ))}
         </div>
       </div>
 
-      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+      {/* Mapa */}
+      <div ref={mapContainer} style={{ flex: 1 }} />
 
-      {selectedInsumo && (
-        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10, background: "white", borderRadius: "20px 20px 0 0", padding: "20px 20px 32px", boxShadow: "0 -4px 20px rgba(0,0,0,0.1)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-            <div style={{ background: "#1e2a4a", borderRadius: 6, padding: "5px 12px" }}>
-              <span style={{ color: "white", fontSize: 12, fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}>
-                {selectedInsumo.tipo === "solicitud" ? "SOLICITUD URGENTE" : "INSUMO DISPONIBLE"}
-              </span>
+      {/* Card seleccionado */}
+      {seleccionado && (
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          maxWidth: 430, margin: "0 auto",
+          background: "white", borderRadius: "20px 20px 0 0",
+          padding: 20, boxShadow: "0 -4px 20px rgba(0,0,0,0.12)",
+          zIndex: 10,
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <p style={{ margin: "0 0 2px", fontSize: 11, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                CERCANO: {distanciaTexto(seleccionado)}
+              </p>
+              <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#252E52" }}>
+                {seleccionado.nombre_insumo}
+              </h3>
+              <p style={{ margin: 0, fontSize: 13, color: "#6B7280" }}>
+                {seleccionado.mensaje || "Sin descripción"}
+              </p>
             </div>
-            {selectedInsumo.urgente && (
-              <div style={{ background: "#fff0f0", borderRadius: 6, padding: "5px 10px" }}>
-                <span style={{ color: "#e05c5c", fontSize: 12, fontWeight: 600 }}>URGENTE</span>
-              </div>
-            )}
-            <button onClick={() => setSelectedInsumo(null)} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#aaa", fontSize: 22 }}>×</button>
+            <button
+              onClick={() => setSeleccionado(null)}
+              style={{ background: "none", border: "none", fontSize: 20, cursor: "pointer", color: "#9CA3AF" }}
+            >
+              ✕
+            </button>
           </div>
 
-          <h3 style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 700, color: "#1e2a4a", fontFamily: "'Outfit', sans-serif" }}>{selectedInsumo.nombre_insumo}</h3>
-          {selectedInsumo.cantidad && <p style={{ margin: "0 0 4px", fontSize: 13, color: "#aaa", fontFamily: "'Outfit', sans-serif" }}>Cantidad: {selectedInsumo.cantidad}</p>}
-          {selectedInsumo.estado && <p style={{ margin: "0 0 4px", fontSize: 13, color: "#aaa", fontFamily: "'Outfit', sans-serif" }}>Estado: {selectedInsumo.estado}</p>}
-          {selectedInsumo.mensaje && <p style={{ margin: "0 0 16px", fontSize: 13, color: "#7b7fd4", fontFamily: "'Outfit', sans-serif" }}>{selectedInsumo.mensaje}</p>}
-
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <button style={{ flex: 1, padding: "14px", borderRadius: 10, border: "1.5px solid #e0e0f0", background: "white", color: "#1e2a4a", fontSize: 14, fontWeight: 600, fontFamily: "'Outfit', sans-serif", cursor: "pointer" }}>
-              {selectedInsumo.tipo === "solicitud" ? "Ofrecer ayuda" : "Reservar canje"}
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button style={{
+              flex: 1, padding: 13,
+              background: "#252E52", color: "white",
+              border: "none", borderRadius: 14,
+              fontWeight: 700, fontSize: 14, cursor: "pointer",
+            }}>
+              Reservar canje
             </button>
-            <button style={{ width: 48, height: 48, borderRadius: 10, border: "1.5px solid #e0e0f0", background: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 18 }}>🤍</button>
+            <button style={{
+              width: 48, height: 48, borderRadius: 14,
+              border: "2px solid #E5E7EB", background: "white",
+              fontSize: 20, cursor: "pointer",
+            }}>
+              ♡
+            </button>
           </div>
         </div>
       )}
