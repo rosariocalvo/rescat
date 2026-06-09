@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 const MAPBOX_TOKEN = "pk.eyJ1Ijoicm9zYXJpb2NhbHZvIiwiYSI6ImNtcTV0cWNqNjAyeWI0OW9yM3k1czUxdGwifQ.vvfYtaplB7hQjmo9fqvPcg";
-const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36";
+const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq76exby005s01qw8yh57wch";
 
 const INSUMOS_MOCK = [
   { id: 1, lat: -33.4180, lng: -70.6060, titulo: "Insulina Novorapid Flexpen 100 UI/ML", usuario: "Cristina Fernandez - 5 Cartuchos 3 ML", distancia: "0.3", urgente: false },
