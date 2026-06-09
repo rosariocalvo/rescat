@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const MAPBOX_TOKEN = "pk.eyJ1Ijoicm9zYXJpb2NhbHZvIiwiYSI6ImNtcTV0cWNqNjAyeWI0OW9yM3k1czUxdGwifQ.vvfYtaplB7hQjmo9fqvPcg";
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
 
 const INSUMOS_MOCK = [
   { id: 1, lat: -33.4180, lng: -70.6060, titulo: "Insulina Novorapid Flexpen 100 UI/ML", usuario: "Cristina Fernandez - 5 Cartuchos 3 ML", distancia: "0.3", urgente: false },
@@ -97,7 +97,7 @@ export default function MapScreen({ user }) {
       window.mapboxgl.accessToken = MAPBOX_TOKEN;
       map.current = new window.mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/mapbox/light-v11",
+        style: "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36",
         center: [-70.6060, -33.4180],
         zoom: 14,
       });
