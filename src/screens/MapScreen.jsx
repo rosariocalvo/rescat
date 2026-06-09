@@ -97,7 +97,7 @@ export default function MapScreen({ user }) {
       window.mapboxgl.accessToken = MAPBOX_TOKEN;
       map.current = new window.mapboxgl.Map({
         container: mapContainer.current,
-        style: RESCAT_MAP_STYLE,
+        style: "mapbox://styles/mapbox/light-v11",
         center: [-70.6060, -33.4180],
         zoom: 14,
       });
@@ -156,7 +156,7 @@ export default function MapScreen({ user }) {
         </div>
       </div>
 
-      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+      <div style={{ width: "100%", height: "100%", filter: "hue-rotate(220deg) saturate(0.35) brightness(1.08)" }}><div ref={mapContainer} style={{ width: "100%", height: "100%" }} /></div>
 
       {selectedInsumo && (
         <div style={{
