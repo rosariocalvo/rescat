@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN;
+const MAPBOX_STYLE = "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36";
 
 const INSUMOS_MOCK = [
   { id: 1, lat: -33.4180, lng: -70.6060, titulo: "Insulina Novorapid Flexpen 100 UI/ML", usuario: "Cristina Fernandez - 5 Cartuchos 3 ML", distancia: "0.3", urgente: false },
@@ -9,44 +10,6 @@ const INSUMOS_MOCK = [
 ];
 
 const ZOOM_POR_RADIO = { 2: 14, 5: 12.5, 10: 11.5 };
-
-// Estilo morado RESCAT completo
-const RESCAT_MAP_STYLE = {
-  version: 8,
-  name: "RESCAT",
-  glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}",
-  sources: {
-    carto: {
-      type: "raster",
-      tiles: [
-        "https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png",
-        "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png"
-      ],
-      tileSize: 256,
-      attribution: "© OpenStreetMap © CARTO"
-    }
-  },
-  layers: [
-    {
-      id: "background",
-      type: "background",
-      paint: { "background-color": "#eeeef8" }
-    },
-    {
-      id: "carto-tiles",
-      type: "raster",
-      source: "carto",
-      paint: {
-        "raster-opacity": 1,
-        "raster-hue-rotate": 220,
-        "raster-saturation": -0.6,
-        "raster-brightness-min": 0.85,
-        "raster-brightness-max": 1,
-        "raster-contrast": -0.1,
-      }
-    }
-  ]
-};
 
 export default function MapScreen({ user }) {
   const mapContainer = useRef(null);
@@ -97,7 +60,7 @@ export default function MapScreen({ user }) {
       window.mapboxgl.accessToken = MAPBOX_TOKEN;
       map.current = new window.mapboxgl.Map({
         container: mapContainer.current,
-        style: "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36",
+        style: MAPBOX_STYLE,
         center: [-70.6060, -33.4180],
         zoom: 14,
       });
@@ -156,7 +119,7 @@ export default function MapScreen({ user }) {
         </div>
       </div>
 
-      <div style={{ width: "100%", height: "100%", filter: "hue-rotate(220deg) saturate(0.35) brightness(1.08)" }}><div ref={mapContainer} style={{ width: "100%", height: "100%" }} /></div>
+      <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
 
       {selectedInsumo && (
         <div style={{
