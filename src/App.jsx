@@ -19,23 +19,18 @@ export default function App() {
       setSession(session);
       setCheckingSession(false);
     });
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) setScreen("home");
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
-  // Escuchar eventos del BottomNav
   useEffect(() => {
     const openMapa = () => setScreen("mapa");
     const openPublicar = () => setScreen("publicar");
-
     window.addEventListener("openMapa", openMapa);
     window.addEventListener("openPublicar", openPublicar);
-
     return () => {
       window.removeEventListener("openMapa", openMapa);
       window.removeEventListener("openPublicar", openPublicar);
@@ -48,43 +43,18 @@ export default function App() {
     setScreen("welcome");
   }
 
-  // Si está verificando sesión, no mostrar nada aún
   if (checkingSession) return null;
 
-  // Si ya tiene sesión activa, ir directo a la app
   if (session) {
-    if (screen === "mapa") {
-      return <MapScreen user={session.user} onBack={() => setScreen("home")} />;
-    }
-    if (screen === "publicar") {
-      return <PublicarScreen user={session.user} onBack={() => setScreen("home")} />;
-    }
+    if (screen === "mapa") return <MapScreen user={session.user} onBack={() => setScreen("home")} />;
+    if (screen === "publicar") return <PublicarScreen user={session.user} onBack={() => setScreen("home")} />;
     return <Home user={session.user} onSignOut={handleSignOut} />;
   }
 
-  // Flujo de onboarding
   if (screen === "splash") return <Splash onDone={() => setScreen("onboarding")} />;
   if (screen === "onboarding") return <Onboarding onDone={() => setScreen("welcome")} />;
-  if (screen === "welcome") return (
-    <Welcome
-      onSignUp={() => setScreen("signup")}
-      onSignIn={() => setScreen("signin")}
-    />
-  );
-  if (screen === "signin") return (
-    <SignIn
-      onBack={() => setScreen("welcome")}
-      onSignUp={() => setScreen("signup")}
-      onSuccess={() => setScreen("home")}
-    />
-  );
-  if (screen === "signup") return (
-    <SignUp
-      onBack={() => setScreen("welcome")}
-      onSignIn={() => setScreen("signin")}
-      onSuccess={() => setScreen("signin")}
-    />
-  );
-
+  if (screen === "welcome") return <Welcome onSignUp={() => setScreen("signup")} onSignIn={() => setScreen("signin")} />;
+  if (screen === "signin") return <SignIn onBack={() => setScreen("welcome")} onSignUp={() => setScreen("signup")} onSuccess={() => setScreen("home")} />;
+  if (screen === "signup") return <SignUp onBack={() => setScreen("welcome")} onSignIn={() => setScreen("signin")} onSuccess={() => setScreen("signin")} />;
   return null;
 }
