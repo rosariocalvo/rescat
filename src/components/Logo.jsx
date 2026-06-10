@@ -1,11 +1,13 @@
-export default function Logo({ size = 64 }) {
+export default function Logo({ size = 52 }) {
   return (
     <img
-      src="/logo-vector.svg"
-      alt="RESCAT"
+      src="/logo_rescat.png"
+      alt="RESCAT+"
       style={{
-        width: size * 3,
-        height: "auto",
+        height: size,
+        width: "auto",
+        objectFit: "contain",
+        display: "block",
       }}
     />
   );
