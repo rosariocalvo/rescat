@@ -155,27 +155,80 @@ function PublicarMenu({ user, onSelectCompartir, onSelectAyudar }) {
 
 function FormCompartir({ user, onBack, onSuccess }) {
   const [tipoInsumo, setTipoInsumo] = useState("");
+  const [tipoCustom, setTipoCustom] = useState("");
   const [estado, setEstado] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [fechaVenc, setFechaVenc] = useState("");
   const [ubicacion, setUbicacion] = useState("");
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [fotoFile, setFotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const dc = user?.user_metadata?.dc || 240;
+  const fileInputRef = { current: null };
 
-  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box", appearance: "none" };
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: "#7b80a0", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
+  // DC según tipo de insumo
+  const dcPorTipo = {
+    "Insulina": 80,
+    "Sensor CGM": 120,
+    "Bomba de insulina": 200,
+    "Tiras reactivas": 30,
+    "Lancetas": 15,
+    "Glucómetro": 60,
+    "Otro": 25,
+  };
+  const valorDC = dcPorTipo[tipoInsumo] || 0;
+  const nombreFinal = tipoInsumo === "Otro" ? tipoCustom : tipoInsumo;
+
+  function handleFoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFotoFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setFotoPreview(ev.target.result);
+    reader.readAsDataURL(file);
+  }
 
   async function handleSubmit(e) {
-    e.preventDefault(); setLoading(true);
+    e.preventDefault();
+    setLoading(true);
     let lat = null, lng = null;
-    try { const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej)); lat = pos.coords.latitude; lng = pos.coords.longitude; } catch {}
-    await supabase.from("publicaciones").insert({ user_id: user.id, tipo: "compartir", nombre_insumo: tipoInsumo, cantidad: parseInt(cantidad)||null, fecha_vencimiento: fechaVenc||null, latitud: lat, longitud: lng, estado: "activa", mensaje: estado });
-    setLoading(false); onSuccess();
+    let fotoUrl = null;
+    try {
+      const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej));
+      lat = pos.coords.latitude; lng = pos.coords.longitude;
+    } catch {}
+    // Subir foto a Supabase Storage si existe
+    if (fotoFile) {
+      const ext = fotoFile.name.split(".").pop();
+      const path = `insumos/${user.id}_${Date.now()}.${ext}`;
+      const { data } = await supabase.storage.from("fotos").upload(path, fotoFile, { upsert: true });
+      if (data) {
+        const { data: urlData } = supabase.storage.from("fotos").getPublicUrl(path);
+        fotoUrl = urlData?.publicUrl || null;
+      }
+    }
+    await supabase.from("publicaciones").insert({
+      user_id: user.id,
+      tipo: "compartir",
+      nombre_insumo: nombreFinal,
+      cantidad: cantidad || null,
+      fecha_vencimiento: fechaVenc || null,
+      latitud: lat,
+      longitud: lng,
+      estado: "activa",
+      mensaje: estado,
+      foto_url: fotoUrl,
+    });
+    setLoading(false);
+    onSuccess();
   }
+
+  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box" };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: "#7b80a0", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
 
   return (
     <div style={{ paddingBottom: 100, fontFamily: "Outfit, sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap'); select { background-image: none; }`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
 
       {/* Header */}
       <div style={{ padding: "52px 24px 24px", display: "flex", alignItems: "center", gap: 14 }}>
@@ -186,33 +239,50 @@ function FormCompartir({ user, onBack, onSuccess }) {
       </div>
 
       <div style={{ padding: "0 24px" }}>
-        {/* Card valor estimado */}
-        <div style={{ background: "#f0f1f9", border: "1.5px solid #c8cce8", borderRadius: 18, padding: "16px 20px", marginBottom: 28, display: "flex", alignItems: "center", gap: 16 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(120,144,208,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <IconoDC />
+
+        {/* Card valor estimado — solo visible si eligió tipo */}
+        {tipoInsumo && (
+          <div style={{ background: "#f0f1f9", border: "1.5px solid #c8cce8", borderRadius: 18, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(120,144,208,0.18)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <IconoDC />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Valor estimado</p>
+              <p style={{ margin: "0 0 4px", fontSize: 11, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Basado en publicaciones similares</p>
+              <span style={{ fontSize: 22, fontWeight: 700, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>{valorDC} DC</span>
+            </div>
+            <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 1px 6px rgba(30,42,74,0.08)" }}>
+              <IconoDC />
+              <span style={{ fontWeight: 700, fontSize: 13, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Valor estimado</p>
-            <p style={{ margin: "0 0 6px", fontSize: 11, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Basado en publicaciones similares</p>
-            <span style={{ fontSize: 22, fontWeight: 700, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>50 DC</span>
-          </div>
-          <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 1px 6px rgba(30,42,74,0.08)" }}>
-            <IconoDC />
-            <span style={{ fontWeight: 700, fontSize: 13, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
-          </div>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit}>
-          {/* Foto */}
+
+          {/* Foto del insumo */}
           <div style={{ marginBottom: 20 }}>
             <label style={labelStyle}>Foto del insumo</label>
-            <div style={{ border: "2px dashed #c8cce8", borderRadius: 16, padding: "32px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "#f5f6fc", cursor: "pointer" }}>
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
-                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.5" strokeLinejoin="round"/>
-                <circle cx="12" cy="13" r="4" stroke="#7890D0" strokeWidth="1.5"/>
-              </svg>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>Subir foto</span>
-              <span style={{ fontSize: 12, color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>JPG, PNG (máx. 5MB)</span>
+            <input
+              type="file" accept="image/*" style={{ display: "none" }}
+              ref={el => fileInputRef.current = el}
+              onChange={handleFoto}
+            />
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              style={{ border: "2px dashed #c8cce8", borderRadius: 16, padding: fotoPreview ? "8px" : "28px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "#f5f6fc", cursor: "pointer", overflow: "hidden" }}>
+              {fotoPreview ? (
+                <img src={fotoPreview} alt="preview" style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 12 }} />
+              ) : (
+                <>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                    <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.5" strokeLinejoin="round"/>
+                    <circle cx="12" cy="13" r="4" stroke="#7890D0" strokeWidth="1.5"/>
+                  </svg>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>Subir foto</span>
+                  <span style={{ fontSize: 12, color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>JPG, PNG (máx. 5MB)</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -220,18 +290,23 @@ function FormCompartir({ user, onBack, onSuccess }) {
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Tipo de insumo</label>
             <div style={{ position: "relative" }}>
-              <select value={tipoInsumo} onChange={e=>setTipoInsumo(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }}>
+              <select value={tipoInsumo} onChange={e => setTipoInsumo(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }}>
                 <option value="">Seleccionar...</option>
                 <option>Insulina</option>
                 <option>Sensor CGM</option>
+                <option>Bomba de insulina</option>
                 <option>Tiras reactivas</option>
                 <option>Lancetas</option>
+                <option>Glucómetro</option>
                 <option>Otro</option>
               </select>
               <svg style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M6 9l6 6 6-6" stroke="#7b80a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </div>
+            {tipoInsumo === "Otro" && (
+              <input style={{ ...inputStyle, marginTop: 10 }} value={tipoCustom} onChange={e => setTipoCustom(e.target.value)} placeholder="Describe el insumo..." required />
+            )}
           </div>
 
           {/* Estado + Cantidad */}
@@ -239,7 +314,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>Estado del producto</label>
               <div style={{ position: "relative" }}>
-                <select value={estado} onChange={e=>setEstado(e.target.value)} style={{ ...inputStyle, paddingRight: 40 }}>
+                <select value={estado} onChange={e=>setEstado(e.target.value)} style={{ ...inputStyle, paddingRight: 36 }}>
                   <option value="">Seleccionar...</option>
                   <option>Sellado</option>
                   <option>Abierto</option>
@@ -252,7 +327,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
             </div>
             <div style={{ flex: 1 }}>
               <label style={labelStyle}>Cantidad disponible</label>
-              <input style={inputStyle} value={cantidad} onChange={e=>setCantidad(e.target.value)} placeholder="3 cajas" type="text"/>
+              <input style={inputStyle} value={cantidad} onChange={e=>setCantidad(e.target.value)} placeholder="Ej: 3 cajas" />
             </div>
           </div>
 
@@ -276,7 +351,12 @@ function FormCompartir({ user, onBack, onSuccess }) {
               </span>
               <input style={{ ...inputStyle, paddingLeft: 44, paddingRight: 44 }} value={ubicacion} onChange={e=>setUbicacion(e.target.value)} placeholder="Las Condes, Santiago" />
               <span style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", cursor:"pointer" }}
-                onClick={async () => { try { const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej)); setUbicacion(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`); } catch {} }}>
+                onClick={async () => {
+                  try {
+                    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej));
+                    setUbicacion(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+                  } catch {}
+                }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </span>
             </div>
