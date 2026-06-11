@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../supabase";
 
-// ─── Ícono moneda DC (extraído del Figma) ─────────────────────────────────
 const IconoDC = () => (
   <svg viewBox="252 89 21 21" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M271.931 100.156C271.931 105.219 267.827 109.323 262.764 109.323C257.702 109.323 253.598 105.219 253.598 100.156C253.598 95.0933 257.702 90.9893 262.764 90.9893C267.827 90.9893 271.931 95.0933 271.931 100.156Z" fill="#7890D0"/>
@@ -13,37 +12,38 @@ const IconoDC = () => (
   </svg>
 );
 
-// ─── Íconos BottomNav ─────────────────────────────────────────────────────
+// ─── Íconos BottomNav — blancos cuando activos, grises cuando no ──────────
 const IconInicio = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
+      fill={active ? "white" : "#b0b8d0"}/>
   </svg>
 );
 const IconPublicar = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="9.5" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M12 8v8M8 12h8" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
+    <circle cx="12" cy="12" r="9.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M12 8v8M8 12h8" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 const IconBuscar = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="11" cy="11" r="7.5" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M16.5 16.5L21 21" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
+    <circle cx="11" cy="11" r="7.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M16.5 16.5L21 21" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 const IconCanjes = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M7 16l-4-4 4-4M17 8l4 4-4 4M14 4l-4 16" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M7 16l-4-4 4-4M17 8l4 4-4 4" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 12h18" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 const IconPerfil = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="8" r="3.5" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? "#1e2a4a" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
+    <circle cx="12" cy="8" r="3.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 
-// ─── BottomNav ─────────────────────────────────────────────────────────────
 function BottomNav({ activeTab, onTabChange }) {
   const tabs = [
     { id: "inicio", label: "Inicio", Icon: IconInicio },
@@ -65,22 +65,21 @@ function BottomNav({ activeTab, onTabChange }) {
           <button key={id} onClick={() => onTabChange(id)} style={{
             flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
-            gap: 2, border: "none", background: "transparent", cursor: "pointer", padding: "6px 4px",
+            gap: 4, border: "none", background: "transparent",
+            cursor: "pointer", padding: "6px 4px",
           }}>
             <div style={{
               width: 44, height: 44, borderRadius: 14,
               background: isActive ? "#1e2a4a" : "transparent",
               display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "background 0.2s",
             }}>
-              {isActive
-                ? <Icon active={true} />
-                : <Icon active={false} />}
+              <Icon active={isActive} />
             </div>
             <span style={{
-              fontSize: 10, fontWeight: isActive ? 700 : 400,
+              fontSize: 10,
+              fontWeight: isActive ? 700 : 400,
               color: isActive ? "#1e2a4a" : "#b0b8d0",
-              fontFamily: "\'Outfit\', sans-serif",
+              fontFamily: "Outfit, sans-serif",
             }}>{label}</span>
           </button>
         );
@@ -89,7 +88,6 @@ function BottomNav({ activeTab, onTabChange }) {
   );
 }
 
-// ─── Tab Inicio ────────────────────────────────────────────────────────────
 function TabInicio({ user }) {
   const [publicaciones, setPublicaciones] = useState([]);
   const [urgentes, setUrgentes] = useState([]);
@@ -109,73 +107,51 @@ function TabInicio({ user }) {
 
   return (
     <div style={{ paddingBottom: 90 }}>
-      <style>{`@import url(\'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap\');`}</style>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
 
       {/* Header */}
-      <div style={{
-        padding: "52px 24px 0",
-        display: "flex", justifyContent: "space-between", alignItems: "center"
-      }}>
-        {/* Logo grande — mismo tamaño que en el diseño Figma */}
+      <div style={{ padding: "52px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <img
           src="/logo_rescat.png"
           alt="RESCAT+"
-          style={{ height: 68, width: "auto", objectFit: "contain" }}
+          style={{ height: 90, width: "auto", objectFit: "contain" }}
         />
-        {/* Badge DC con ícono del Figma */}
         <div style={{
-          background: "white", borderRadius: 50, padding: "8px 16px",
+          background: "white", borderRadius: 50, padding: "8px 18px",
           display: "flex", alignItems: "center", gap: 8,
-          boxShadow: "0 1px 8px rgba(30,42,74,0.08)",
+          boxShadow: "0 1px 8px rgba(30,42,74,0.10)",
         }}>
           <IconoDC />
-          <span style={{
-            fontWeight: 700, fontSize: 15, color: "#1e2a4a",
-            fontFamily: "\'Outfit\', sans-serif"
-          }}>{dc} DC</span>
+          <span style={{ fontWeight: 700, fontSize: 15, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
         </div>
       </div>
 
       <div style={{ padding: "20px 24px 0" }}>
-        {/* Saludo */}
-        <p style={{ fontSize: 20, fontWeight: 700, color: "#1e2a4a", margin: "0 0 2px", fontFamily: "\'Outfit\', sans-serif" }}>
+        <p style={{ fontSize: 22, fontWeight: 700, color: "#1e2a4a", margin: "0 0 4px", fontFamily: "Outfit, sans-serif" }}>
           HOLA, {firstName} 👋
         </p>
-        <p style={{ fontSize: 14, color: "#7b80a0", margin: "0 0 24px", fontFamily: "\'Outfit\', sans-serif" }}>
+        <p style={{ fontSize: 14, color: "#7b80a0", margin: "0 0 28px", fontFamily: "Outfit, sans-serif" }}>
           ¿Necesitas algún insumo hoy?
         </p>
 
         {/* Card Ver Mapa */}
-        <div
-          onClick={() => window.dispatchEvent(new CustomEvent("openMapa"))}
-          style={{
-            background: "#e8eaf0", borderRadius: 20, padding: "20px 20px",
-            display: "flex", justifyContent: "space-between", alignItems: "center",
-            marginBottom: 32, cursor: "pointer",
-          }}>
+        <div onClick={() => window.dispatchEvent(new CustomEvent("openMapa"))}
+          style={{ background: "#e8eaf0", borderRadius: 20, padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, cursor: "pointer" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/>
               </svg>
-              <p style={{ margin: 0, fontSize: 13, color: "#7b80a0", fontFamily: "\'Outfit\', sans-serif" }}>
+              <p style={{ margin: 0, fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>
                 {publicaciones.length > 0 ? `${publicaciones.length} publicaciones` : "Insumos"} cerca de ti
               </p>
             </div>
-            <p style={{ margin: "0 0 4px", fontSize: 13, color: "#5b6080", fontFamily: "\'Outfit\', sans-serif" }}>En un radio de 2 km</p>
-            <div style={{
-              background: "#7890D0", color: "white", borderRadius: 50,
-              padding: "10px 20px", display: "inline-block",
-              fontSize: 14, fontWeight: 600, fontFamily: "\'Outfit\', sans-serif", marginTop: 10
-            }}>
+            <p style={{ margin: "0 0 4px", fontSize: 13, color: "#5b6080", fontFamily: "Outfit, sans-serif" }}>En un radio de 2 km</p>
+            <div style={{ background: "#7890D0", color: "white", borderRadius: 50, padding: "10px 20px", display: "inline-block", fontSize: 14, fontWeight: 600, fontFamily: "Outfit, sans-serif", marginTop: 10 }}>
               Ver Mapa →
             </div>
           </div>
-          <div style={{
-            width: 100, height: 100, borderRadius: 16,
-            background: "#d0d4e8", overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}>
+          <div style={{ width: 100, height: 100, borderRadius: 16, background: "#d0d4e8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
               <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/>
             </svg>
@@ -184,33 +160,26 @@ function TabInicio({ user }) {
 
         {/* Actividad reciente */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e2a4a", margin: 0, fontFamily: "\'Outfit\', sans-serif" }}>Actividad reciente</h3>
-          <span style={{ fontSize: 13, color: "#7b80a0", fontFamily: "\'Outfit\', sans-serif" }}>Ver todas &gt;</span>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e2a4a", margin: 0, fontFamily: "Outfit, sans-serif" }}>Actividad reciente</h3>
+          <span style={{ fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Ver todas &gt;</span>
         </div>
 
         {publicaciones.length === 0 ? (
-          <p style={{ color: "#b0b8d0", fontSize: 13, fontFamily: "\'Outfit\', sans-serif" }}>Sin actividad reciente.</p>
+          <p style={{ color: "#b0b8d0", fontSize: 13, fontFamily: "Outfit, sans-serif" }}>Sin actividad reciente.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
             {publicaciones.map((p) => (
-              <div key={p.id} style={{
-                background: "white", borderRadius: 16, padding: "14px 16px",
-                boxShadow: "0 1px 8px rgba(30,42,74,0.06)",
-                display: "flex", justifyContent: "space-between", alignItems: "center"
-              }}>
+              <div key={p.id} style={{ background: "white", borderRadius: 16, padding: "14px 16px", boxShadow: "0 1px 8px rgba(30,42,74,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12,
-                    background: p.tipo === "compartir" ? "#f0f1f9" : "#fff0f2",
-                    display: "flex", alignItems: "center", justifyContent: "center"
-                  }}>
-                    <svg width="22" height="22" viewBox="252 89 21 21" fill="none">
-                      <path d="M271.931 100.156C271.931 105.219 267.827 109.323 262.764 109.323C257.702 109.323 253.598 105.219 253.598 100.156C253.598 95.0933 257.702 90.9893 262.764 90.9893C267.827 90.9893 271.931 95.0933 271.931 100.156Z" fill={p.tipo === "compartir" ? "#7890D0" : "#EC6765"}/>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: p.tipo === "compartir" ? "#f0f1f9" : "#fff0f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="8" fill={p.tipo === "compartir" ? "#7890D0" : "#EC6765"} fillOpacity="0.2"/>
+                      <circle cx="12" cy="12" r="5" fill={p.tipo === "compartir" ? "#7890D0" : "#EC6765"}/>
                     </svg>
                   </div>
                   <div>
-                    <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 14, color: "#1e2a4a", fontFamily: "\'Outfit\', sans-serif" }}>{p.nombre_insumo}</p>
-                    <p style={{ margin: 0, fontSize: 11, color: "#b0b8d0", fontFamily: "\'Outfit\', sans-serif" }}>
+                    <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{p.nombre_insumo}</p>
+                    <p style={{ margin: 0, fontSize: 11, color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>
                       {p.tipo === "compartir" ? "Compartiendo" : "Solicitando"} · hace poco
                     </p>
                   </div>
@@ -221,38 +190,34 @@ function TabInicio({ user }) {
           </div>
         )}
 
-        {/* Urgencias */}
         {urgentes.length > 0 && (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L1 21h22L12 2zm0 3.5L20.5 19h-17L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z" fill="#EC6765"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#EC6765" strokeWidth="1.5" fill="none"/>
+                  <line x1="12" y1="9" x2="12" y2="13" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e2a4a", margin: 0, fontFamily: "\'Outfit\', sans-serif" }}>Urgencias cerca de ti</h3>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e2a4a", margin: 0, fontFamily: "Outfit, sans-serif" }}>Urgencias cerca de ti</h3>
               </div>
-              <span style={{ fontSize: 13, color: "#7b80a0", fontFamily: "\'Outfit\', sans-serif" }}>Ver todas &gt;</span>
+              <span style={{ fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Ver todas &gt;</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {urgentes.map((p) => (
-                <div key={p.id} style={{
-                  background: "white", borderRadius: 16, padding: "14px 16px",
-                  border: "1.5px solid #ffe0e4",
-                  display: "flex", justifyContent: "space-between", alignItems: "center"
-                }}>
+                <div key={p.id} style={{ background: "white", borderRadius: 16, padding: "14px 16px", border: "1.5px solid #ffe0e4", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 12, background: "#fff0f2",
-                      display: "flex", alignItems: "center", justifyContent: "center"
-                    }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: "#fff0f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="#EC6765"/>
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#EC6765" strokeWidth="1.5"/>
+                        <line x1="12" y1="9" x2="12" y2="13" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
                       </svg>
                     </div>
                     <div>
-                      <p style={{ margin: "0 0 2px", fontSize: 11, color: "#EC6765", fontWeight: 600, fontFamily: "\'Outfit\', sans-serif" }}>Urgente</p>
-                      <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 14, color: "#1e2a4a", fontFamily: "\'Outfit\', sans-serif" }}>{p.nombre_insumo}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "#b0b8d0", fontFamily: "\'Outfit\', sans-serif" }}>📍 {p.latitud ? "Cerca de ti" : "Sin ubicación"}</p>
+                      <p style={{ margin: "0 0 2px", fontSize: 11, color: "#EC6765", fontWeight: 600, fontFamily: "Outfit, sans-serif" }}>Urgente</p>
+                      <p style={{ margin: "0 0 2px", fontWeight: 600, fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{p.nombre_insumo}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>📍 {p.latitud ? "Cerca de ti" : "Sin ubicación"}</p>
                     </div>
                   </div>
                   <span style={{ color: "#b0b8d0", fontSize: 20 }}>›</span>
@@ -266,7 +231,6 @@ function TabInicio({ user }) {
   );
 }
 
-// ─── Tab Perfil ────────────────────────────────────────────────────────────
 function TabPerfil({ user, onSignOut }) {
   const nombre = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
   const email = user?.email || "";
@@ -274,14 +238,17 @@ function TabPerfil({ user, onSignOut }) {
   const rut = user?.user_metadata?.rut || "";
 
   return (
-    <div style={{ padding: "52px 24px 100px", fontFamily: "\'Outfit\', sans-serif" }}>
-      <style>{`@import url(\'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap\');`}</style>
-      <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 68, width: "auto", marginBottom: 24 }} />
+    <div style={{ padding: "52px 24px 100px", fontFamily: "Outfit, sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
+      <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 90, width: "auto", marginBottom: 24 }} />
       <div style={{ background: "#1e2a4a", borderRadius: 20, padding: 24, color: "white", marginBottom: 16, textAlign: "center" }}>
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="white" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="3.5" stroke="white" strokeWidth="1.5"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
         </div>
-        <h3 style={{ margin: "0 0 4px", fontSize: 17, fontFamily: "\'Outfit\', sans-serif" }}>{nombre}</h3>
+        <h3 style={{ margin: "0 0 4px", fontSize: 17, fontFamily: "Outfit, sans-serif" }}>{nombre}</h3>
         <p style={{ margin: "0 0 14px", opacity: 0.7, fontSize: 13 }}>{email}</p>
         <div style={{ background: "rgba(255,255,255,0.15)", borderRadius: 50, padding: "8px 20px", display: "inline-flex", alignItems: "center", gap: 8 }}>
           <IconoDC />
@@ -295,14 +262,13 @@ function TabPerfil({ user, onSignOut }) {
           <p style={{ margin: 0, fontWeight: 600, color: "#1e2a4a" }}>{rut}</p>
         </div>
       )}
-      <button onClick={onSignOut} style={{ marginTop: 20, width: "100%", padding: 16, background: "transparent", border: "1.5px solid #dde0ea", borderRadius: 50, color: "#7b80a0", fontSize: 15, fontWeight: 500, cursor: "pointer", fontFamily: "\'Outfit\', sans-serif" }}>
+      <button onClick={onSignOut} style={{ marginTop: 20, width: "100%", padding: 16, background: "transparent", border: "1.5px solid #dde0ea", borderRadius: 50, color: "#7b80a0", fontSize: 15, fontWeight: 500, cursor: "pointer", fontFamily: "Outfit, sans-serif" }}>
         Cerrar sesión
       </button>
     </div>
   );
 }
 
-// ─── Home principal ────────────────────────────────────────────────────────
 export default function Home({ user, onSignOut }) {
   const [activeTab, setActiveTab] = useState("inicio");
 
@@ -312,7 +278,7 @@ export default function Home({ user, onSignOut }) {
       case "perfil": return <TabPerfil user={user} onSignOut={onSignOut} />;
       default:
         return (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", color: "#b0b8d0", gap: 12, fontFamily: "\'Outfit\', sans-serif" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", color: "#b0b8d0", gap: 12, fontFamily: "Outfit, sans-serif" }}>
             <span style={{ fontSize: 48 }}>🚧</span>
             <p style={{ margin: 0, fontSize: 15 }}>Próximamente</p>
           </div>
@@ -321,7 +287,7 @@ export default function Home({ user, onSignOut }) {
   };
 
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f0f0f5", fontFamily: "\'Outfit\', sans-serif" }}>
+    <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f0f0f5", fontFamily: "Outfit, sans-serif" }}>
       {renderTab()}
       <BottomNav activeTab={activeTab} onTabChange={(tab) => {
         if (tab === "publicar") window.dispatchEvent(new CustomEvent("openPublicar"));
