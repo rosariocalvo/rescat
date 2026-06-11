@@ -12,11 +12,9 @@ const IconoDC = () => (
   </svg>
 );
 
-// ─── Íconos BottomNav — blancos cuando activos, grises cuando no ──────────
 const IconInicio = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
-      fill={active ? "white" : "#b0b8d0"}/>
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active ? "white" : "#b0b8d0"}/>
   </svg>
 );
 const IconPublicar = ({ active }) => (
@@ -33,8 +31,8 @@ const IconBuscar = ({ active }) => (
 );
 const IconCanjes = ({ active }) => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M7 16l-4-4 4-4M17 8l4 4-4 4" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M3 12h18" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
+    <path d="M4 9h13M4 9l3-3M4 9l3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 15H7M20 15l-3-3M20 15l-3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 const IconPerfil = ({ active }) => (
@@ -76,8 +74,7 @@ function BottomNav({ activeTab, onTabChange }) {
               <Icon active={isActive} />
             </div>
             <span style={{
-              fontSize: 10,
-              fontWeight: isActive ? 700 : 400,
+              fontSize: 10, fontWeight: isActive ? 700 : 400,
               color: isActive ? "#1e2a4a" : "#b0b8d0",
               fontFamily: "Outfit, sans-serif",
             }}>{label}</span>
@@ -88,7 +85,129 @@ function BottomNav({ activeTab, onTabChange }) {
   );
 }
 
-function TabInicio({ user }) {
+// ─── Historial de actividad ────────────────────────────────────────────────
+function TabHistorial({ user, onBack }) {
+  const [historial, setHistorial] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("publicaciones")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setHistorial(data || []);
+        setLoading(false);
+      });
+  }, []);
+
+  const formatFecha = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString("es-CL", { day: "numeric", month: "short", year: "numeric" });
+  };
+
+  return (
+    <div style={{ paddingBottom: 90 }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
+      <div style={{ padding: "52px 24px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+        <button onClick={onBack} style={{
+          background: "white", border: "none", borderRadius: 12,
+          width: 40, height: 40, display: "flex", alignItems: "center",
+          justifyContent: "center", cursor: "pointer",
+          boxShadow: "0 1px 6px rgba(30,42,74,0.08)"
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>
+          Mi actividad
+        </h2>
+      </div>
+
+      <div style={{ padding: "0 24px" }}>
+        {loading && <p style={{ color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>Cargando...</p>}
+        {!loading && historial.length === 0 && (
+          <p style={{ color: "#b0b8d0", fontFamily: "Outfit, sans-serif", fontSize: 14 }}>
+            Aún no tienes actividad registrada.
+          </p>
+        )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {historial.map((p) => (
+            <div key={p.id} style={{
+              background: "white", borderRadius: 16, padding: "16px",
+              boxShadow: "0 1px 8px rgba(30,42,74,0.06)",
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12,
+                    background: p.tipo === "compartir" ? "#f0f1f9" : "#fff0f2",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                  }}>
+                    {p.tipo === "compartir" ? (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3"
+                          stroke="#7890D0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                          stroke="#EC6765" strokeWidth="1.5"/>
+                        <line x1="12" y1="9" x2="12" y2="13" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
+                    )}
+                  </div>
+                  <div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, fontFamily: "Outfit, sans-serif",
+                      color: p.tipo === "compartir" ? "#7890D0" : "#EC6765",
+                    }}>
+                      {p.tipo === "compartir" ? "Compartiste" : "Solicitaste"}
+                    </span>
+                    <p style={{ margin: "2px 0", fontWeight: 600, fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>
+                      {p.nombre_insumo}
+                    </p>
+                    {p.cantidad && (
+                      <p style={{ margin: 0, fontSize: 12, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>
+                        Cantidad: {p.cantidad}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <span style={{
+                    fontSize: 11, color: "#b0b8d0", fontFamily: "Outfit, sans-serif",
+                    display: "block", marginBottom: 4
+                  }}>
+                    {formatFecha(p.created_at)}
+                  </span>
+                  <span style={{
+                    padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                    background: p.estado === "activa" ? "#e8f5e9" : "#f5f5f5",
+                    color: p.estado === "activa" ? "#4caf50" : "#9e9e9e",
+                    fontFamily: "Outfit, sans-serif",
+                  }}>
+                    {p.estado === "activa" ? "Activa" : "Cerrada"}
+                  </span>
+                </div>
+              </div>
+              {p.mensaje && (
+                <p style={{ margin: "10px 0 0", fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif", lineHeight: 1.4 }}>
+                  "{p.mensaje}"
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TabInicio({ user, onVerTodas }) {
   const [publicaciones, setPublicaciones] = useState([]);
   const [urgentes, setUrgentes] = useState([]);
 
@@ -109,13 +228,8 @@ function TabInicio({ user }) {
     <div style={{ paddingBottom: 90 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
 
-      {/* Header */}
       <div style={{ padding: "52px 24px 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <img
-          src="/logo_rescat.png"
-          alt="RESCAT+"
-          style={{ height: 90, width: "auto", objectFit: "contain" }}
-        />
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 100, width: "auto", objectFit: "contain" }} />
         <div style={{
           background: "white", borderRadius: 50, padding: "8px 18px",
           display: "flex", alignItems: "center", gap: 8,
@@ -134,7 +248,6 @@ function TabInicio({ user }) {
           ¿Necesitas algún insumo hoy?
         </p>
 
-        {/* Card Ver Mapa */}
         <div onClick={() => window.dispatchEvent(new CustomEvent("openMapa"))}
           style={{ background: "#e8eaf0", borderRadius: 20, padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, cursor: "pointer" }}>
           <div>
@@ -158,23 +271,23 @@ function TabInicio({ user }) {
           </div>
         </div>
 
-        {/* Actividad reciente */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: "#1e2a4a", margin: 0, fontFamily: "Outfit, sans-serif" }}>Actividad reciente</h3>
-          <span style={{ fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Ver todas &gt;</span>
+          <span onClick={onVerTodas} style={{ fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif", cursor: "pointer" }}>Ver todas &gt;</span>
         </div>
 
         {publicaciones.length === 0 ? (
           <p style={{ color: "#b0b8d0", fontSize: 13, fontFamily: "Outfit, sans-serif" }}>Sin actividad reciente.</p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-            {publicaciones.map((p) => (
+            {publicaciones.slice(0, 3).map((p) => (
               <div key={p.id} style={{ background: "white", borderRadius: 16, padding: "14px 16px", boxShadow: "0 1px 8px rgba(30,42,74,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 44, height: 44, borderRadius: 12, background: p.tipo === "compartir" ? "#f0f1f9" : "#fff0f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="8" fill={p.tipo === "compartir" ? "#7890D0" : "#EC6765"} fillOpacity="0.2"/>
-                      <circle cx="12" cy="12" r="5" fill={p.tipo === "compartir" ? "#7890D0" : "#EC6765"}/>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3"
+                        stroke={p.tipo === "compartir" ? "#7890D0" : "#EC6765"}
+                        strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                   <div>
@@ -195,7 +308,7 @@ function TabInicio({ user }) {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#EC6765" strokeWidth="1.5" fill="none"/>
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#EC6765" strokeWidth="1.5"/>
                   <line x1="12" y1="9" x2="12" y2="13" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round"/>
                   <line x1="12" y1="17" x2="12.01" y2="17" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
@@ -208,7 +321,7 @@ function TabInicio({ user }) {
                 <div key={p.id} style={{ background: "white", borderRadius: 16, padding: "14px 16px", border: "1.5px solid #ffe0e4", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 12, background: "#fff0f2", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                         <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="#EC6765" strokeWidth="1.5"/>
                         <line x1="12" y1="9" x2="12" y2="13" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round"/>
                         <line x1="12" y1="17" x2="12.01" y2="17" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
@@ -240,7 +353,7 @@ function TabPerfil({ user, onSignOut }) {
   return (
     <div style={{ padding: "52px 24px 100px", fontFamily: "Outfit, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
-      <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 90, width: "auto", marginBottom: 24 }} />
+      <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 100, width: "auto", marginBottom: 24 }} />
       <div style={{ background: "#1e2a4a", borderRadius: 20, padding: 24, color: "white", marginBottom: 16, textAlign: "center" }}>
         <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
@@ -271,11 +384,19 @@ function TabPerfil({ user, onSignOut }) {
 
 export default function Home({ user, onSignOut }) {
   const [activeTab, setActiveTab] = useState("inicio");
+  const [showHistorial, setShowHistorial] = useState(false);
 
-  const renderTab = () => {
+  const renderContent = () => {
+    if (showHistorial) {
+      return <TabHistorial user={user} onBack={() => setShowHistorial(false)} />;
+    }
     switch (activeTab) {
-      case "inicio": return <TabInicio user={user} />;
-      case "perfil": return <TabPerfil user={user} onSignOut={onSignOut} />;
+      case "inicio":
+        return <TabInicio user={user} onVerTodas={() => setShowHistorial(true)} />;
+      case "canjes":
+        return <TabHistorial user={user} onBack={() => setActiveTab("inicio")} />;
+      case "perfil":
+        return <TabPerfil user={user} onSignOut={onSignOut} />;
       default:
         return (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", color: "#b0b8d0", gap: 12, fontFamily: "Outfit, sans-serif" }}>
@@ -288,12 +409,16 @@ export default function Home({ user, onSignOut }) {
 
   return (
     <div style={{ maxWidth: 430, margin: "0 auto", minHeight: "100vh", background: "#f0f0f5", fontFamily: "Outfit, sans-serif" }}>
-      {renderTab()}
-      <BottomNav activeTab={activeTab} onTabChange={(tab) => {
-        if (tab === "publicar") window.dispatchEvent(new CustomEvent("openPublicar"));
-        else if (tab === "buscar") window.dispatchEvent(new CustomEvent("openMapa"));
-        else setActiveTab(tab);
-      }} />
+      {renderContent()}
+      <BottomNav
+        activeTab={showHistorial ? "canjes" : activeTab}
+        onTabChange={(tab) => {
+          setShowHistorial(false);
+          if (tab === "publicar") window.dispatchEvent(new CustomEvent("openPublicar"));
+          else if (tab === "buscar") window.dispatchEvent(new CustomEvent("openMapa"));
+          else setActiveTab(tab);
+        }}
+      />
     </div>
   );
 }
