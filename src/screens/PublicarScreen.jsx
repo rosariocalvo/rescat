@@ -12,31 +12,34 @@ const IconoDC = () => (
   </svg>
 );
 
-// ─── Ícono caja 3D (Compartir) ────────────────────────────────────────────
+// ─── Ícono caja isométrica (Compartir) ────────────────────────────────────
 const IconoCaja = () => (
   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-    {/* Cuerpo frontal */}
-    <path d="M14 24H50V50C50 51.1 49.1 52 48 52H16C14.9 52 14 51.1 14 50V24Z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
-    {/* Tapa */}
-    <path d="M11 16H53C53.6 16 54 16.4 54 17V24H10V17C10 16.4 10.4 16 11 16Z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
-    {/* Solapas tapa - izquierda */}
-    <path d="M26 16C26 16 24 12 32 12C40 12 38 16 38 16" stroke="#7890D0" strokeWidth="1.8" strokeLinecap="round"/>
-    {/* Cinta vertical frontal */}
-    <path d="M32 24V52" stroke="#7890D0" strokeWidth="1.8" strokeLinecap="round"/>
-    {/* Cinta horizontal frontal */}
-    <path d="M14 36H50" stroke="#7890D0" strokeWidth="1.8" strokeLinecap="round"/>
+    {/* Cara frontal */}
+    <path d="M12 30L32 20L52 30V50L32 60L12 50V30Z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
+    {/* División frontal/derecha */}
+    <path d="M32 20V60" stroke="#7890D0" strokeWidth="1.8"/>
+    <path d="M52 30L32 40L12 30" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
+    {/* Tapa izquierda abierta */}
+    <path d="M12 30L22 18L32 20" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
+    {/* Tapa derecha abierta */}
+    <path d="M52 30L42 18L32 20" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
+    {/* Parte superior/trasera */}
+    <path d="M22 18L32 8L42 18" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/>
+    <path d="M32 8L32 20" stroke="#7890D0" strokeWidth="1.5" strokeDasharray="2 2"/>
   </svg>
 );
 
-// ─── Ícono corazón + cruz separada (Solicitar) ────────────────────────────
+// ─── Ícono corazón + cruz (Solicitar) — igual al diseño Figma ─────────────
 const IconoCorazon = () => (
   <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-    {/* Corazón (desplazado a la izquierda para dejar espacio a la cruz) */}
-    <path d="M26 46C26 46 8 35 8 23C8 17.5 12 13 17.5 13C21 13 24 15 26 18C28 15 31 13 34.5 13C40 13 44 17.5 44 23C44 35 26 46 26 46Z"
+    {/* Corazón pequeño arriba izquierda */}
+    <path d="M28 44C28 44 10 33 10 21C10 15.5 14 11 19.5 11C23 11 26 13 28 16C30 13 33 11 36.5 11C42 11 46 15.5 46 21C46 33 28 44 28 44Z"
       stroke="#EC6765" strokeWidth="1.8" strokeLinejoin="round"/>
-    {/* Cruz médica separada a la derecha */}
-    <path d="M50 22V32" stroke="#EC6765" strokeWidth="2.2" strokeLinecap="round"/>
-    <path d="M45 27H55" stroke="#EC6765" strokeWidth="2.2" strokeLinecap="round"/>
+    {/* Cruz médica cuadrada en esquina inferior derecha del corazón */}
+    <rect x="36" y="34" width="18" height="18" rx="3" stroke="#EC6765" strokeWidth="1.8"/>
+    <path d="M45 38V48" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M40 43H50" stroke="#EC6765" strokeWidth="2" strokeLinecap="round"/>
   </svg>
 );
 
