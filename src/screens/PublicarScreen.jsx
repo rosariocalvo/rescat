@@ -154,37 +154,139 @@ function PublicarMenu({ user, onSelectCompartir, onSelectAyudar }) {
 }
 
 function FormCompartir({ user, onBack, onSuccess }) {
-  const [nombreInsumo, setNombreInsumo] = useState("");
+  const [tipoInsumo, setTipoInsumo] = useState("");
+  const [estado, setEstado] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [fechaVenc, setFechaVenc] = useState("");
+  const [ubicacion, setUbicacion] = useState("");
   const [loading, setLoading] = useState(false);
-  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box" };
-  const labelStyle = { fontSize: 12, fontWeight: 600, color: "#7b80a0", marginBottom: 6, display: "block", fontFamily: "Outfit, sans-serif", textTransform: "uppercase", letterSpacing: "0.5px" };
+  const dc = user?.user_metadata?.dc || 240;
+
+  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box", appearance: "none" };
+  const labelStyle = { fontSize: 12, fontWeight: 600, color: "#7b80a0", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
+
   async function handleSubmit(e) {
     e.preventDefault(); setLoading(true);
     let lat = null, lng = null;
     try { const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej)); lat = pos.coords.latitude; lng = pos.coords.longitude; } catch {}
-    await supabase.from("publicaciones").insert({ user_id: user.id, tipo: "compartir", nombre_insumo: nombreInsumo, cantidad: parseInt(cantidad)||null, fecha_vencimiento: fechaVenc||null, latitud: lat, longitud: lng, estado: "activa" });
+    await supabase.from("publicaciones").insert({ user_id: user.id, tipo: "compartir", nombre_insumo: tipoInsumo, cantidad: parseInt(cantidad)||null, fecha_vencimiento: fechaVenc||null, latitud: lat, longitud: lng, estado: "activa", mensaje: estado });
     setLoading(false); onSuccess();
   }
+
   return (
-    <div style={{ paddingBottom: 90 }}>
+    <div style={{ paddingBottom: 100, fontFamily: "Outfit, sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap'); select { background-image: none; }`}</style>
+
+      {/* Header */}
       <div style={{ padding: "52px 24px 24px", display: "flex", alignItems: "center", gap: 14 }}>
-        <button onClick={onBack} style={{ background: "white", border: "none", borderRadius: 12, width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 1px 6px rgba(30,42,74,0.08)" }}>
+        <button onClick={onBack} style={{ background: "white", border: "none", borderRadius: 14, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 1px 6px rgba(30,42,74,0.10)", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Compartir insumo</h2>
       </div>
-      <form onSubmit={handleSubmit} style={{ padding: "0 24px" }}>
-        <div style={{ marginBottom: 16 }}><label style={labelStyle}>Nombre del insumo *</label><input style={inputStyle} value={nombreInsumo} onChange={e=>setNombreInsumo(e.target.value)} placeholder="Ej: Insulina Glargina 100U" required/></div>
-        <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
-          <div style={{ flex:1 }}><label style={labelStyle}>Cantidad</label><input style={inputStyle} type="number" value={cantidad} onChange={e=>setCantidad(e.target.value)} placeholder="1" min="1"/></div>
-          <div style={{ flex:1 }}><label style={labelStyle}>Fecha venc.</label><input style={inputStyle} type="date" value={fechaVenc} onChange={e=>setFechaVenc(e.target.value)}/></div>
+
+      <div style={{ padding: "0 24px" }}>
+        {/* Card valor estimado */}
+        <div style={{ background: "#f0f1f9", border: "1.5px solid #c8cce8", borderRadius: 18, padding: "16px 20px", marginBottom: 28, display: "flex", alignItems: "center", gap: 16 }}>
+          <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(120,144,208,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <IconoDC />
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Valor estimado</p>
+            <p style={{ margin: "0 0 6px", fontSize: 11, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Basado en publicaciones similares</p>
+            <span style={{ fontSize: 22, fontWeight: 700, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>50 DC</span>
+          </div>
+          <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 1px 6px rgba(30,42,74,0.08)" }}>
+            <IconoDC />
+            <span style={{ fontWeight: 700, fontSize: 13, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
+          </div>
         </div>
-        <button type="submit" disabled={loading} style={{ width:"100%", padding:16, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-          {loading ? "Publicando..." : "Publicar insumo"}
-        </button>
-      </form>
+
+        <form onSubmit={handleSubmit}>
+          {/* Foto */}
+          <div style={{ marginBottom: 20 }}>
+            <label style={labelStyle}>Foto del insumo</label>
+            <div style={{ border: "2px dashed #c8cce8", borderRadius: 16, padding: "32px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, background: "#f5f6fc", cursor: "pointer" }}>
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none">
+                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.5" strokeLinejoin="round"/>
+                <circle cx="12" cy="13" r="4" stroke="#7890D0" strokeWidth="1.5"/>
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#7890D0", fontFamily: "Outfit, sans-serif" }}>Subir foto</span>
+              <span style={{ fontSize: 12, color: "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>JPG, PNG (máx. 5MB)</span>
+            </div>
+          </div>
+
+          {/* Tipo de insumo */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Tipo de insumo</label>
+            <div style={{ position: "relative" }}>
+              <select value={tipoInsumo} onChange={e=>setTipoInsumo(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }}>
+                <option value="">Seleccionar...</option>
+                <option>Insulina</option>
+                <option>Sensor CGM</option>
+                <option>Tiras reactivas</option>
+                <option>Lancetas</option>
+                <option>Otro</option>
+              </select>
+              <svg style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M6 9l6 6 6-6" stroke="#7b80a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          </div>
+
+          {/* Estado + Cantidad */}
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Estado del producto</label>
+              <div style={{ position: "relative" }}>
+                <select value={estado} onChange={e=>setEstado(e.target.value)} style={{ ...inputStyle, paddingRight: 40 }}>
+                  <option value="">Seleccionar...</option>
+                  <option>Sellado</option>
+                  <option>Abierto</option>
+                  <option>Por vencer</option>
+                </select>
+                <svg style={{ position:"absolute", right:12, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="#7b80a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={labelStyle}>Cantidad disponible</label>
+              <input style={inputStyle} value={cantidad} onChange={e=>setCantidad(e.target.value)} placeholder="3 cajas" type="text"/>
+            </div>
+          </div>
+
+          {/* Fecha vencimiento */}
+          <div style={{ marginBottom: 16 }}>
+            <label style={labelStyle}>Fecha de vencimiento</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#7b80a0" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#7b80a0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </span>
+              <input style={{ ...inputStyle, paddingLeft: 44 }} type="date" value={fechaVenc} onChange={e=>setFechaVenc(e.target.value)} />
+            </div>
+          </div>
+
+          {/* Ubicación */}
+          <div style={{ marginBottom: 28 }}>
+            <label style={labelStyle}>Ubicación</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
+              </span>
+              <input style={{ ...inputStyle, paddingLeft: 44, paddingRight: 44 }} value={ubicacion} onChange={e=>setUbicacion(e.target.value)} placeholder="Las Condes, Santiago" />
+              <span style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", cursor:"pointer" }}
+                onClick={async () => { try { const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej)); setUbicacion(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`); } catch {} }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </span>
+            </div>
+          </div>
+
+          <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+            {loading ? "Publicando..." : "Publicar insumo"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
