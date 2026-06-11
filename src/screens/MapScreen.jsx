@@ -2,127 +2,123 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import Logo from "../components/Logo";
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+const IconoDC = () => (
+  <svg viewBox="252 89 21 21" width="20" height="20" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M271.931 100.156C271.931 105.219 267.827 109.323 262.764 109.323C257.702 109.323 253.598 105.219 253.598 100.156C253.598 95.0933 257.702 90.9893 262.764 90.9893C267.827 90.9893 271.931 95.0933 271.931 100.156Z" fill="#7890D0"/>
+    <path d="M270.557 100.156C270.557 104.46 267.068 107.949 262.764 107.949C258.461 107.949 254.972 104.46 254.972 100.156C254.972 95.8521 258.461 92.3632 262.764 92.3632C267.068 92.3632 270.557 95.8521 270.557 100.156Z" fill="#B7C3E3"/>
+    <path d="M260.603 97.8155C260.579 97.6961 260.59 97.3262 260.589 97.1863C260.587 96.4875 260.544 95.9835 260.948 95.3663C261.246 94.9161 261.761 94.5303 262.296 94.4284C262.965 94.301 263.595 94.3804 264.152 94.7652C265.012 95.36 265.17 96.2277 265.125 97.2068C265.116 97.3917 265.131 97.5939 265.118 97.7851C265.393 97.7813 265.669 97.7798 265.944 97.7807C266.364 97.7807 266.636 97.7723 267.038 97.9201C268.597 98.4927 268.929 100.702 267.808 101.83C267.345 102.296 266.844 102.474 266.196 102.481L265.488 102.481C265.397 102.481 265.19 102.486 265.112 102.476C265.166 103.44 265.147 104.603 264.406 105.313C263.492 106.189 262.037 106.136 261.18 105.22C260.548 104.545 260.552 103.257 260.592 102.384L260.595 102.358C260.505 102.325 260.252 102.356 260.152 102.356C259.969 102.355 259.779 102.347 259.597 102.333C258.906 102.282 258.313 102.203 257.785 101.705C257.373 101.317 257.067 100.691 257.059 100.126C257.067 99.5272 257.281 98.9466 257.691 98.5087C258.318 97.8376 259.259 97.8377 260.109 97.8053C260.274 97.799 260.44 97.8195 260.603 97.8155ZM260.597 98.1338C259.912 98.0819 258.982 98.1321 258.355 98.4277C257.821 98.6789 257.453 99.3398 257.41 99.9179C257.368 100.43 257.535 100.938 257.874 101.325C258.256 101.767 258.806 101.958 259.377 101.999C259.629 102.017 259.881 102.026 260.133 102.025C260.287 102.023 260.45 102.011 260.6 102.012C260.585 101.915 260.589 101.645 260.589 101.539L260.59 100.671L260.589 99.1033C260.589 98.7909 260.583 98.4434 260.597 98.1338ZM264.779 102.475C264.628 102.488 264.349 102.481 264.187 102.481L263.08 102.481L261.695 102.481C261.461 102.481 261.15 102.489 260.921 102.475C260.848 102.818 260.947 103.933 261.043 104.279C261.093 104.465 261.173 104.642 261.278 104.804C261.818 105.64 263.071 105.868 263.874 105.302C264.33 104.981 264.617 104.58 264.709 104.022C264.79 103.57 264.815 102.931 264.779 102.475ZM260.901 102.171C262.689 102.141 264.515 102.181 266.308 102.165C266.816 102.139 267.292 101.912 267.633 101.536C268.362 100.715 268.313 99.2839 267.462 98.5568C266.896 98.0726 266.351 98.0653 265.651 98.0879C265.388 98.094 265.088 98.0766 264.829 98.095C264.817 98.0959 264.804 98.097 264.792 98.0985C264.789 97.7566 264.789 97.4147 264.792 97.0728C264.793 96.3302 264.784 95.7989 264.199 95.231C263.835 94.8764 263.344 94.6812 262.836 94.6883C262.81 94.6888 262.784 94.6898 262.759 94.6914C262.383 94.7269 262.083 94.8017 261.769 95.01C261.223 95.3731 260.92 95.9617 260.908 96.6126C260.905 96.7697 260.903 96.9287 260.903 97.088L260.904 98.0131L260.904 100.727C260.904 101.182 260.917 101.727 260.901 102.171Z" fill="#252E52"/>
+    <path d="M260.592 102.384C260.676 102.39 260.838 102.395 260.907 102.44L260.921 102.475C260.848 102.818 260.948 103.933 261.044 104.279C261.094 104.465 261.173 104.642 261.279 104.804C261.819 105.64 263.072 105.868 263.875 105.302C264.331 104.981 264.617 104.58 264.71 104.022C264.791 103.57 264.815 102.931 264.78 102.475C264.791 102.371 264.991 102.384 265.069 102.395C265.111 102.426 265.098 102.415 265.113 102.476C265.166 103.44 265.147 104.603 264.406 105.313C263.492 106.189 262.038 106.136 261.18 105.22C260.548 104.545 260.553 103.257 260.592 102.384Z" fill="#252E52"/>
+    <path d="M260.603 97.8155C260.621 97.8499 260.613 98.0938 260.597 98.1338C259.912 98.0819 258.982 98.1321 258.355 98.4277C257.821 98.6789 257.453 99.3398 257.41 99.9179C257.368 100.43 257.535 100.938 257.874 101.325C258.256 101.767 258.806 101.958 259.377 101.999C259.629 102.017 259.881 102.026 260.133 102.025C260.287 102.023 260.45 102.011 260.6 102.012C260.609 102.096 260.638 102.288 260.595 102.358C260.505 102.325 260.252 102.356 260.152 102.356C259.969 102.355 259.779 102.347 259.597 102.333C258.906 102.282 258.313 102.203 257.785 101.705C257.373 101.317 257.067 100.691 257.059 100.125C257.067 99.5272 257.281 98.9466 257.691 98.5087C258.318 97.8376 259.259 97.8377 260.109 97.8053C260.274 97.799 260.44 97.8195 260.603 97.8155Z" fill="#252E52"/>
+    <path d="M33.6054 171.573V157.573H35.9654V163.523H42.0754V157.573H44.4354V171.573H42.0754V165.563H35.9654V171.573H33.6054ZM49.2283 164.573C49.2283 167.493 51.4483 169.743 54.2683 169.743C57.0883 169.743 59.3183 167.493 59.3183 164.573C59.3183 161.663 57.0883 159.403 54.2683 159.403C51.4483 159.403 49.2283 161.663 49.2283 164.573ZM46.8383 164.573C46.8383 160.493 50.0683 157.333 54.2683 157.333C58.4683 157.333 61.7083 160.493 61.7083 164.573C61.7083 168.653 58.4683 171.813 54.2683 171.813C50.0683 171.813 46.8383 168.653 46.8383 164.573ZM64.0937 171.573V157.573H66.4537V169.533H72.4237V171.573H64.0937ZM78.3757 157.573H80.9957L86.1357 171.573H83.6057L82.4357 168.193H76.9257L75.7557 171.573H73.2257L78.3757 157.573ZM77.5757 166.223H81.7957L79.6857 160.133L77.5757 166.223ZM88.0566 170.243C88.0566 169.583 88.6466 168.903 89.5466 168.903C90.3766 168.903 91.0066 169.513 91.0066 170.553C91.0066 172.223 90.0766 173.653 88.1466 174.493L87.5166 173.693C89.0966 172.603 89.1066 172.053 88.3166 170.983C88.1666 170.783 88.0566 170.523 88.0566 170.243ZM100.09 171.573V157.573H108.59V159.603H102.45V163.533H108.09V165.543H102.45V169.553H108.77V171.573H100.09ZM111.457 157.573H116.167C119.147 157.573 121.017 159.333 121.017 162.013C121.017 164.183 119.787 165.733 117.727 166.233L121.317 171.573H118.727L115.307 166.443H113.807V171.573H111.457V157.573ZM116.027 159.563H113.807V164.493H116.027C117.697 164.493 118.647 163.513 118.647 162.033C118.647 160.533 117.697 159.563 116.027 159.563ZM123.746 157.573H126.106V171.573H123.746V157.573ZM140.615 166.973L142.045 168.013C140.635 170.553 138.565 171.813 135.715 171.813C131.745 171.813 128.655 168.743 128.655 164.573C128.655 160.413 131.745 157.333 135.715 157.333C139.065 157.333 141.495 159.253 142.235 162.363H139.765C139.185 160.433 137.575 159.403 135.745 159.403C133.235 159.403 131.045 161.403 131.045 164.573C131.045 167.753 133.285 169.743 135.835 169.743C137.935 169.743 139.535 168.703 140.615 166.973ZM148.278 157.573H150.898L156.038 171.573H153.508L152.338 168.193H146.828L145.658 171.573H143.128L148.278 157.573ZM147.478 166.223H151.698L149.588 160.133L147.478 166.223ZM168.392 172.973H188.392V152.973H168.392V172.973Z" fill="#252E52"/>
+  </svg>
+);
 
 const IconInicio = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active ? "white" : "#b0b8d0"}/>
   </svg>
 );
 const IconPublicar = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M11 11V7h2v4h4v2h-4v4h-2v-4H7v-2h4zm1 11C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-2a8 8 0 100-16 8 8 0 000 16z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="9.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M12 8v8M8 12h8" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 const IconBuscar = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M18.031 16.617l4.283 4.282-1.415 1.415-4.282-4.283A8.96 8.96 0 0111 20c-4.968 0-9-4.032-9-9s4.032-9 9-9 9 4.032 9 9a8.96 8.96 0 01-1.969 5.617zm-2.006-.742A6.977 6.977 0 0018 11c0-3.868-3.133-7-7-7-3.868 0-7 3.132-7 7 0 3.867 3.132 7 7 7a6.977 6.977 0 004.875-1.975l.15-.15z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <circle cx="11" cy="11" r="7.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M16.5 16.5L21 21" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
 const IconCanjes = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M12 22l-4-4 1.4-1.425 1.6 1.575V13h2v5.15l1.6-1.575L16 18l-4 4zM12 2l4 4-1.4 1.425-1.6-1.575V11h-2V5.85L9.4 7.425 8 6l4-4z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <path d="M4 9h13M4 9l3-3M4 9l3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M20 15H7M20 15l-3-3M20 15l-3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 const IconPerfil = ({ active }) => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-    <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" fill={active ? "#1e2a4a" : "#b0b8d0"}/>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="8" r="3.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
   </svg>
 );
-
-function BottomNav({ onTabChange }) {
-  const tabs = [
-    { id: "inicio", label: "Inicio", Icon: IconInicio },
-    { id: "publicar", label: "Publicar", Icon: IconPublicar },
-    { id: "buscar", label: "Buscar", Icon: IconBuscar, active: true },
-    { id: "canjes", label: "Canjes", Icon: IconCanjes },
-    { id: "perfil", label: "Perfil", Icon: IconPerfil },
-  ];
-  return (
-    <nav style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "white", borderRadius: "20px 20px 0 0", boxShadow: "0 -2px 20px rgba(30,42,74,0.08)", display: "flex", alignItems: "center", height: 72, zIndex: 100 }}>
-      {tabs.map(({ id, label, Icon, active }) => (
-        <button key={id} onClick={() => onTabChange(id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "6px 4px" }}>
-          <div style={{ width: 44, height: 44, borderRadius: 14, background: active ? "#e8eaf0" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon active={active} />
-          </div>
-          <span style={{ fontSize: 10, fontWeight: active ? 700 : 400, color: active ? "#1e2a4a" : "#b0b8d0", fontFamily: "'Outfit', sans-serif" }}>{label}</span>
-        </button>
-      ))}
-    </nav>
-  );
-}
 
 export default function MapScreen({ user, onBack }) {
   const mapContainer = useRef(null);
   const map = useRef(null);
   const [radio, setRadio] = useState(2);
-  const [seleccionado, setSeleccionado] = useState(null);
-  const [userLocation, setUserLocation] = useState(null);
+  const [publicaciones, setPublicaciones] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [userPos, setUserPos] = useState(null);
   const markersRef = useRef([]);
 
   const nombre = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
   const dc = user?.user_metadata?.dc || 240;
+  const firstName = nombre.split(" ")[0].toUpperCase();
 
+  // Inicializar mapa
   useEffect(() => {
     if (map.current) return;
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: import.meta.env.VITE_MAPBOX_STYLE || "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36",
+      style: "mapbox://styles/rosariocalvo/cmq5um0xt007201queia40i36",
+      zoom: 14,
       center: [-70.6483, -33.4569],
-      zoom: 13,
     });
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserLocation([longitude, latitude]);
-        map.current.flyTo({ center: [longitude, latitude], zoom: 14 });
+
+    // Geolocalización
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        setUserPos({ lat, lng });
+        map.current.flyTo({ center: [lng, lat], zoom: 14 });
+
+        // Punto usuario — círculo azul oscuro pulsante
         const el = document.createElement("div");
-        el.style.cssText = "width:18px;height:18px;border-radius:50%;background:#1e2a4a;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);";
-        new mapboxgl.Marker({ element: el }).setLngLat([longitude, latitude]).addTo(map.current);
-      },
-      () => {}
-    );
-  }, []);
-
-  useEffect(() => { fetchPublicaciones(); }, [radio, userLocation]);
-
-  async function fetchPublicaciones() {
-    const { data } = await supabase.from("publicaciones").select("*").eq("estado", "activa");
-    if (!data) return;
-    let filtradas = data;
-    if (userLocation) {
-      filtradas = data.filter((p) => {
-        if (!p.latitud || !p.longitud) return false;
-        return distanciaKm(userLocation[1], userLocation[0], p.latitud, p.longitud) <= radio;
+        el.style.cssText = `
+          width: 16px; height: 16px; border-radius: 50%;
+          background: #1e2a4a; border: 3px solid white;
+          box-shadow: 0 0 0 0 rgba(30,42,74,0.4);
+          animation: pulse 2s infinite;
+        `;
+        new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
       });
     }
-    markersRef.current.forEach((m) => m.remove());
+  }, []);
+
+  // Cargar publicaciones según radio
+  useEffect(() => {
+    supabase.from("publicaciones").select("*").eq("estado", "activa")
+      .not("latitud", "is", null)
+      .then(({ data }) => { if (data) setPublicaciones(data); });
+  }, [radio]);
+
+  // Poner marcadores
+  useEffect(() => {
+    markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
-    filtradas.forEach((p) => {
-      if (!p.latitud || !p.longitud) return;
+
+    publicaciones.forEach((pub) => {
+      if (!pub.latitud || !pub.longitud) return;
+      const isCompartir = pub.tipo === "compartir";
+      const color = isCompartir ? "#7890D0" : "#EC6765";
+
       const el = document.createElement("div");
-      el.style.cssText = `width:32px;height:32px;border-radius:50%;background:${p.urgente ? "#e05060" : "#1e2a4a"};border:3px solid white;box-shadow:0 2px 10px rgba(0,0,0,0.2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;`;
-      el.innerHTML = p.urgente ? "🚨" : "💊";
-      el.addEventListener("click", () => setSeleccionado(p));
-      markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([p.longitud, p.latitud]).addTo(map.current));
+      el.style.cssText = `
+        width: 14px; height: 14px; border-radius: 50%;
+        background: ${color}; border: 2.5px solid white;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer;
+      `;
+      el.addEventListener("click", () => setSelected(pub));
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([pub.longitud, pub.latitud])
+        .addTo(map.current);
+      markersRef.current.push(marker);
     });
-  }
-
-  function distanciaKm(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLon = ((lon2 - lon1) * Math.PI) / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-
-  function distanciaTexto(p) {
-    if (!userLocation || !p.latitud) return "";
-    const d = distanciaKm(userLocation[1], userLocation[0], p.latitud, p.longitud);
-    return d < 1 ? `${(d * 1000).toFixed(0)} m` : `${d.toFixed(1)} km`;
-  }
+  }, [publicaciones]);
 
   function handleNavTab(tab) {
     if (tab === "inicio") onBack();
@@ -130,55 +126,110 @@ export default function MapScreen({ user, onBack }) {
   }
 
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", height: "100vh", display: "flex", flexDirection: "column", fontFamily: "'Outfit', sans-serif", overflow: "hidden", background: "#f0f0f5" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
+    <div style={{ maxWidth: 430, margin: "0 auto", height: "100vh", background: "#f0f0f5", display: "flex", flexDirection: "column", fontFamily: "Outfit, sans-serif", position: "relative", overflow: "hidden" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+        @keyframes pulse {
+          0% { box-shadow: 0 0 0 0 rgba(30,42,74,0.4); }
+          70% { box-shadow: 0 0 0 10px rgba(30,42,74,0); }
+          100% { box-shadow: 0 0 0 0 rgba(30,42,74,0); }
+        }
+      `}</style>
 
-      {/* Header */}
-      <div style={{ padding: "52px 24px 16px", background: "#f0f0f5" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <Logo size={32} />
-          <div style={{ textAlign: "right" }}>
-            <p style={{ margin: 0, fontSize: 13, color: "#1e2a4a", fontWeight: 600, fontFamily: "'Outfit', sans-serif" }}>HOLA, {nombre.toUpperCase()}</p>
-            <div style={{ background: "#e8eaf0", borderRadius: 50, padding: "4px 12px", display: "inline-flex", alignItems: "center", gap: 5, marginTop: 4 }}>
-              <span style={{ fontSize: 13 }}>🪙</span>
-              <span style={{ fontWeight: 700, fontSize: 13, color: "#1e2a4a", fontFamily: "'Outfit', sans-serif" }}>{dc} DC</span>
-            </div>
+      {/* ── Header ── */}
+      <div style={{ padding: "52px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10, background: "#f0f0f5" }}>
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 100, width: "auto", objectFit: "contain" }} />
+        <div style={{ textAlign: "right" }}>
+          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>HOLA, {firstName}</p>
+          <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 1px 8px rgba(30,42,74,0.10)" }}>
+            <IconoDC />
+            <span style={{ fontWeight: 700, fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
           </div>
-        </div>
-        {/* Pills radio */}
-        <div style={{ display: "flex", gap: 8 }}>
-          {[2, 5, 10].map((r) => (
-            <button key={r} onClick={() => setRadio(r)} style={{ padding: "8px 20px", borderRadius: 50, border: "none", background: radio === r ? "#1e2a4a" : "white", color: radio === r ? "white" : "#7b80a0", fontWeight: 600, fontSize: 13, cursor: "pointer", fontFamily: "'Outfit', sans-serif", boxShadow: radio === r ? "none" : "0 1px 6px rgba(30,42,74,0.08)", transition: "all 0.15s" }}>
-              {r} KM
-            </button>
-          ))}
         </div>
       </div>
 
-      {/* Mapa */}
-      <div ref={mapContainer} style={{ flex: 1, marginBottom: 72 }} />
-
-      {/* Card seleccionado */}
-      {seleccionado && (
-        <div style={{ position: "fixed", bottom: 72, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "white", borderRadius: "24px 24px 0 0", padding: 24, boxShadow: "0 -4px 24px rgba(30,42,74,0.12)", zIndex: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-            <div>
-              <p style={{ margin: "0 0 4px", fontSize: 11, color: "#b0b8d0", textTransform: "uppercase", letterSpacing: 1 }}>CERCANO · {distanciaTexto(seleccionado)}</p>
-              <h3 style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#1e2a4a", fontFamily: "'Outfit', sans-serif" }}>{seleccionado.nombre_insumo}</h3>
-              <p style={{ margin: 0, fontSize: 13, color: "#7b80a0", fontFamily: "'Outfit', sans-serif" }}>{seleccionado.mensaje || "Sin descripción adicional"}</p>
-            </div>
-            <button onClick={() => setSeleccionado(null)} style={{ background: "#f0f0f5", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16, color: "#7b80a0" }}>✕</button>
-          </div>
-          <div style={{ display: "flex", gap: 10 }}>
-            <button style={{ flex: 1, padding: 14, background: "#1e2a4a", color: "white", border: "none", borderRadius: 50, fontWeight: 600, fontSize: 14, cursor: "pointer", fontFamily: "'Outfit', sans-serif" }}>
-              Reservar canje
+      {/* ── Mapa full width con pills flotantes ── */}
+      <div style={{ flex: 1, position: "relative" }}>
+        {/* Pills flotantes sobre el mapa */}
+        <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 20, display: "flex", gap: 8 }}>
+          {[2, 5, 10].map((km) => (
+            <button key={km} onClick={() => setRadio(km)} style={{
+              padding: "8px 20px", borderRadius: 50, border: "none", cursor: "pointer",
+              fontWeight: 700, fontSize: 13, fontFamily: "Outfit, sans-serif",
+              background: radio === km ? "#1e2a4a" : "white",
+              color: radio === km ? "white" : "#7b80a0",
+              boxShadow: "0 2px 8px rgba(30,42,74,0.12)",
+            }}>
+              {km} KM
             </button>
-            <button style={{ width: 50, height: 50, borderRadius: "50%", border: "1.5px solid #dde0ea", background: "white", fontSize: 20, cursor: "pointer" }}>♡</button>
-          </div>
+          ))}
         </div>
-      )}
 
-      <BottomNav onTabChange={handleNavTab} />
+        {/* Mapa */}
+        <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+
+        {/* Card de publicación seleccionada */}
+        {selected && (
+          <div style={{
+            position: "absolute", bottom: 90, left: 16, right: 16, zIndex: 20,
+            background: "white", borderRadius: 20, padding: "18px 20px",
+            boxShadow: "0 8px 32px rgba(30,42,74,0.18)",
+          }}>
+            <button onClick={() => setSelected(null)} style={{ position: "absolute", top: 14, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: "#b0b8d0" }}>✕</button>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: selected.tipo === "compartir" ? "#f0f1f9" : "#fff0f2",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3"
+                    stroke={selected.tipo === "compartir" ? "#7890D0" : "#EC6765"}
+                    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: selected.tipo === "compartir" ? "#7890D0" : "#EC6765", fontFamily: "Outfit, sans-serif" }}>
+                  {selected.tipo === "compartir" ? "Compartiendo" : "Solicitando"}
+                  {selected.urgente ? " · Urgente 🚨" : ""}
+                </span>
+                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: 16, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
+              </div>
+            </div>
+            {selected.mensaje && (
+              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif", lineHeight: 1.4 }}>"{selected.mensaje}"</p>
+            )}
+            {selected.cantidad && (
+              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Cantidad: {selected.cantidad}</p>
+            )}
+            <button style={{
+              width: "100%", padding: "12px", background: "#1e2a4a", color: "white",
+              border: "none", borderRadius: 50, fontWeight: 700, fontSize: 14,
+              cursor: "pointer", fontFamily: "Outfit, sans-serif",
+            }}>
+              Contactar →
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── BottomNav ── */}
+      <nav style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "white", borderRadius: "20px 20px 0 0", boxShadow: "0 -2px 20px rgba(30,42,74,0.08)", display: "flex", alignItems: "center", height: 72, zIndex: 30 }}>
+        {[
+          { id: "inicio", label: "Inicio", Icon: IconInicio },
+          { id: "publicar", label: "Publicar", Icon: IconPublicar },
+          { id: "buscar", label: "Buscar", Icon: IconBuscar, active: true },
+          { id: "canjes", label: "Canjes", Icon: IconCanjes },
+          { id: "perfil", label: "Perfil", Icon: IconPerfil },
+        ].map(({ id, label, Icon, active }) => (
+          <button key={id} onClick={() => handleNavTab(id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "6px 4px" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 14, background: active ? "#1e2a4a" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Icon active={!!active} />
+            </div>
+            <span style={{ fontSize: 10, fontWeight: active ? 700 : 400, color: active ? "#1e2a4a" : "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>{label}</span>
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
