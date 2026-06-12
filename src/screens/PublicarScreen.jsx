@@ -334,11 +334,16 @@ function FormCompartir({ user, onBack, onSuccess }) {
           {/* Fecha vencimiento */}
           <div style={{ marginBottom: 16 }}>
             <label style={labelStyle}>Fecha de vencimiento</label>
-            <div style={{ position: "relative" }}>
-              <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+              <span style={{ position:"absolute", left:16, zIndex:1, pointerEvents:"none" }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="#7b80a0" strokeWidth="1.5"/><path d="M16 2v4M8 2v4M3 10h18" stroke="#7b80a0" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </span>
-              <input style={{ ...inputStyle, paddingLeft: 44 }} type="date" value={fechaVenc} onChange={e=>setFechaVenc(e.target.value)} />
+              <input
+                type="date"
+                value={fechaVenc}
+                onChange={e=>setFechaVenc(e.target.value)}
+                style={{ ...inputStyle, paddingLeft: 44, minHeight: 52, WebkitAppearance: "none", MozAppearance: "none", appearance: "none", display: "block", maxWidth: "100%" }}
+              />
             </div>
           </div>
 
@@ -575,7 +580,12 @@ export default function PublicarScreen({ user, onBack }) {
       {view==="ayudar" && <FormAyudar user={user} onBack={()=>setView("menu")} onSuccess={()=>setView("ok_ayudar")}/>}
       {view==="ok_compartir" && <Confirmacion tipo="compartir" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
       {view==="ok_ayudar" && <Confirmacion tipo="ayudar" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
-      <BottomNav activeTab="publicar" onTabChange={(tab)=>{ if(tab==="inicio") onBack(); }}/>
+      <BottomNav activeTab="publicar" onTabChange={(tab)=>{
+        if (tab === "inicio") onBack();
+        else if (tab === "buscar") { onBack(); setTimeout(() => window.dispatchEvent(new CustomEvent("openMapa")), 80); }
+        else if (tab === "canjes") onBack();
+        else if (tab === "perfil") onBack();
+      }}/>
     </div>
   );
 }
