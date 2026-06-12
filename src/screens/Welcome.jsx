@@ -1,5 +1,3 @@
-import Logo from "../components/Logo";
-
 export default function Welcome({ onSignUp, onSignIn }) {
   return (
     <div style={{
@@ -13,7 +11,7 @@ export default function Welcome({ onSignUp, onSignIn }) {
 
       {/* Logo top */}
       <div style={{ display: "flex", justifyContent: "center", paddingTop: 60 }}>
-        <Logo size={44} />
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ width: 160, height: "auto" }} />
       </div>
 
       {/* Main text */}

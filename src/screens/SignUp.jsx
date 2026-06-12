@@ -71,6 +71,9 @@ export default function SignUp({ onBack, onSignIn, onSuccess }) {
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap'); input::placeholder { color: #c0c0d8; }`}</style>
 
       <div style={{ padding: "60px 32px 0" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+          <img src="/logo_rescat.png" alt="RESCAT+" style={{ width: 160, height: "auto" }} />
+        </div>
         <h2 style={{ fontSize: 22, fontWeight: 700, color: "#1e2a4a", textAlign: "center", marginBottom: 8 }}>Crea tu cuenta</h2>
         <p style={{ textAlign: "center", color: "#7b7fd4", fontSize: 14, lineHeight: 1.6, marginBottom: 40 }}>
           Validamos la identidad de cada miembro para proteger la comunidad y fomentar intercambios seguros.

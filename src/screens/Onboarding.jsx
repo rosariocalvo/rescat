@@ -51,7 +51,7 @@ export default function Onboarding({ onDone }) {
 
       {/* Logo arriba izquierda */}
       <div style={{ padding: "52px 24px 0", zIndex: 10 }}>
-        <img src="/logo_rescat.png" alt="RESCAT+" style={{ width: 120, height: "auto" }} />
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ width: 160, height: "auto" }} />
       </div>
 
       {/* Ilustración — ocupa el centro */}

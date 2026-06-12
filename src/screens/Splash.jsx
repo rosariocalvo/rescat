@@ -23,7 +23,7 @@ export default function Splash({ onDone }) {
       <img
         src="/logo_rescat.png"
         alt="RESCAT+"
-        style={{ position: "relative", zIndex: 1, width: 180, height: "auto" }}
+        style={{ position: "relative", zIndex: 1, width: 200, height: "auto" }}
       />
     </div>
   );
