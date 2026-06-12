@@ -1,31 +1,30 @@
 import { useEffect } from "react";
-import Logo from "../components/Logo";
 
 export default function Splash({ onDone }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 2500);
+    const t = setTimeout(onDone, 2200);
     return () => clearTimeout(t);
-  }, [onDone]);
+  }, []);
 
   return (
     <div style={{
-      height: "100vh",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "linear-gradient(180deg, #f8f8fc 0%, #f0f0f5 60%, #c8c8e8 100%)",
-      animation: "fadeIn 0.8s ease",
+      maxWidth: 430, margin: "0 auto",
+      height: "100vh", overflow: "hidden",
+      position: "relative",
+      display: "flex", alignItems: "center", justifyContent: "center",
     }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap');
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Outfit', sans-serif; }
-      `}</style>
-      <div style={{ animation: "pulse 2s ease-in-out infinite" }}>
-        <Logo size={80} />
-      </div>
+      {/* Fondo degradado exacto del Figma */}
+      <img
+        src="/splash_bg.png"
+        alt=""
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      {/* Logo centrado — tamaño grande */}
+      <img
+        src="/logo_rescat.png"
+        alt="RESCAT+"
+        style={{ position: "relative", zIndex: 1, width: 180, height: "auto" }}
+      />
     </div>
   );
 }

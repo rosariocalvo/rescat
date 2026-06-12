@@ -1,128 +1,116 @@
 import { useState } from "react";
-import Logo from "../components/Logo";
 
 const slides = [
   {
-    step: 1,
+    img: "/onboarding_1.png",
+    num: "1",
     title: "ENCUENTRA INSUMOS",
-    bold: "CERCA DE TI",
+    titleBold: "CERCA DE TI",
     desc: "Busca insulina, sensores, tiritas y otros insumos disponibles en tu zona.",
-    img: "/onboarding1.png",
   },
   {
-    step: 2,
-    title: "RESERVA Y",
-    bold: "COORDINA",
-    desc: "Contacta a otros miembros y coordina intercambios de forma rápida y segura.",
-    img: "/onboarding2.png",
+    img: "/onboarding_2.png",
+    num: "2",
+    title: "INTERCAMBIA CON",
+    titleBold: "TU COMUNIDAD",
+    desc: "Conecta con personas cercanas para compartir o recibir insumos cuando más lo necesitas.",
   },
   {
-    step: 3,
-    title: "AYUDA Y",
-    bold: "RECIBE AYUDA",
-    desc: "Gana diabecoins al compartir insumos y utilízalas cuando necesites apoyo de la comunidad.",
-    img: "/onboarding3.png",
+    img: "/onboarding_3.png",
+    num: "3",
+    title: "GANA",
+    titleBold: "DIABETCOINS",
+    desc: "Cada vez que compartes un insumo ganas DiabetCoins para canjear lo que necesites.",
   },
 ];
 
 export default function Onboarding({ onDone }) {
-  const [current, setCurrent] = useState(0);
-  const slide = slides[current];
+  const [idx, setIdx] = useState(0);
+  const slide = slides[idx];
 
-  const handleTap = (e) => {
-    const x = e.clientX;
-    const width = e.currentTarget.offsetWidth;
-    if (x > width / 2) {
-      if (current < slides.length - 1) setCurrent(current + 1);
-      else onDone();
-    } else {
-      if (current > 0) setCurrent(current - 1);
-    }
-  };
+  function next() {
+    if (idx < slides.length - 1) setIdx(idx + 1);
+    else onDone();
+  }
 
   return (
-    <div
-      onClick={handleTap}
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        background: "#f0f0f5",
-        fontFamily: "'Outfit', sans-serif",
-        cursor: "pointer",
-        userSelect: "none",
-      }}
-    >
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700&display=swap');`}</style>
+    <div style={{
+      maxWidth: 430, margin: "0 auto", height: "100vh",
+      background: "#f0f0f5", display: "flex", flexDirection: "column",
+      fontFamily: "Outfit, sans-serif", position: "relative", overflow: "hidden",
+    }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');`}</style>
 
-      {/* Top bar */}
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "52px 24px 0" }}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onDone(); }}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "#7b7fd4", fontSize: 15, fontFamily: "inherit" }}
-        >
-          Omitir
-        </button>
+      {/* Botón Omitir */}
+      <button
+        onClick={onDone}
+        style={{ position: "absolute", top: 52, right: 24, zIndex: 10, background: "transparent", border: "none", fontSize: 15, color: "#7890D0", fontWeight: 600, fontFamily: "Outfit, sans-serif", cursor: "pointer" }}
+      >
+        Omitir
+      </button>
+
+      {/* Logo arriba izquierda */}
+      <div style={{ padding: "52px 24px 0", zIndex: 10 }}>
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ width: 120, height: "auto" }} />
       </div>
 
-      {/* Logo */}
-      <div style={{ display: "flex", justifyContent: "center", marginTop: 12 }}>
-        <Logo size={40} />
-      </div>
-
-      {/* Illustration sin fondo */}
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, padding: "16px 32px 0" }}>
+      {/* Ilustración — ocupa el centro */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 32px 0" }}>
         <img
-          key={slide.img}
           src={slide.img}
-          alt={slide.bold}
-          style={{
-            width: "100%",
-            maxWidth: 300,
-            height: "auto",
-            objectFit: "contain",
-            mixBlendMode: "multiply",
-          }}
+          alt=""
+          style={{ width: "100%", maxWidth: 320, height: "auto", objectFit: "contain" }}
         />
       </div>
 
-      {/* Content */}
-      <div style={{ padding: "0 32px 40px", textAlign: "center" }}>
+      {/* Contenido inferior */}
+      <div style={{ padding: "0 32px 48px", textAlign: "center" }}>
+        {/* Número */}
         <div style={{
-          width: 40, height: 40, borderRadius: "50%",
-          background: "#1e2a4a", color: "white",
+          width: 44, height: 44, borderRadius: "50%", background: "#1e2a4a",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 16, fontWeight: 600,
-          margin: "16px auto 16px",
+          margin: "0 auto 20px", fontSize: 16, fontWeight: 700, color: "white",
+          fontFamily: "Outfit, sans-serif",
         }}>
-          {slide.step}
+          {slide.num}
         </div>
 
-        <div style={{ fontSize: 16, fontWeight: 400, letterSpacing: "0.08em", color: "#1e2a4a", marginBottom: 2 }}>
+        {/* Título */}
+        <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 400, color: "#1e2a4a", letterSpacing: 1, fontFamily: "Outfit, sans-serif", textTransform: "uppercase" }}>
           {slide.title}
-        </div>
-        <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: "0.08em", color: "#1e2a4a", marginBottom: 12 }}>
-          {slide.bold}
-        </div>
-        <div style={{ fontSize: 14, color: "#7b7fd4", lineHeight: 1.6, marginBottom: 24 }}>
-          {slide.desc}
-        </div>
+        </p>
+        <p style={{ margin: "0 0 16px", fontSize: 18, fontWeight: 800, color: "#1e2a4a", letterSpacing: 1, fontFamily: "Outfit, sans-serif", textTransform: "uppercase" }}>
+          {slide.titleBold}
+        </p>
 
-        {/* Dots horizontales */}
-        <div style={{ display: "flex", flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 8 }}>
+        {/* Descripción */}
+        <p style={{ margin: "0 0 28px", fontSize: 14, color: "#7890D0", lineHeight: 1.6, fontFamily: "Outfit, sans-serif", fontWeight: 500 }}>
+          {slide.desc}
+        </p>
+
+        {/* Dots */}
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 28 }}>
           {slides.map((_, i) => (
-            <div
-              key={i}
-              onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
-              style={{
-                width: 10, height: 10, borderRadius: "50%",
-                background: i === current ? "#1e2a4a" : "#c0c0d8",
-                transition: "background 0.3s",
-                cursor: "pointer",
-              }}
-            />
+            <div key={i} onClick={() => setIdx(i)} style={{
+              width: i === idx ? 20 : 8, height: 8, borderRadius: 4,
+              background: i === idx ? "#1e2a4a" : "#c8cce8",
+              transition: "all 0.3s", cursor: "pointer",
+            }} />
           ))}
         </div>
+
+        {/* Botón siguiente */}
+        <button
+          onClick={next}
+          style={{
+            width: "100%", padding: "16px", background: "#1e2a4a",
+            color: "white", border: "none", borderRadius: 50,
+            fontWeight: 700, fontSize: 16, cursor: "pointer",
+            fontFamily: "Outfit, sans-serif",
+          }}
+        >
+          {idx < slides.length - 1 ? "Siguiente" : "Comenzar"}
+        </button>
       </div>
     </div>
   );
