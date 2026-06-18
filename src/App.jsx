@@ -9,6 +9,7 @@ import Home from "./screens/Home";
 import MapScreen from "./screens/MapScreen";
 import PublicarScreen from "./screens/PublicarScreen";
 import CanjesScreen from "./screens/CanjesScreen";
+import PerfilScreen from "./screens/PerfilScreen";
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -31,13 +32,16 @@ export default function App() {
     const openMapa = () => setScreen("mapa");
     const openPublicar = () => setScreen("publicar");
     const openCanjes = () => setScreen("canjes");
+    const openPerfil = () => setScreen("perfil");
     window.addEventListener("openMapa", openMapa);
     window.addEventListener("openPublicar", openPublicar);
     window.addEventListener("openCanjes", openCanjes);
+    window.addEventListener("openPerfil", openPerfil);
     return () => {
       window.removeEventListener("openMapa", openMapa);
       window.removeEventListener("openPublicar", openPublicar);
       window.removeEventListener("openCanjes", openCanjes);
+      window.removeEventListener("openPerfil", openPerfil);
     };
   }, []);
 
@@ -52,6 +56,7 @@ export default function App() {
     if (screen === "mapa") return <MapScreen user={session.user} onBack={() => setScreen("home")} />;
     if (screen === "publicar") return <PublicarScreen user={session.user} onBack={() => setScreen("home")} />;
     if (screen === "canjes") return <CanjesScreen user={session.user} onBack={() => setScreen("home")} />;
+    if (screen === "perfil") return <PerfilScreen user={session.user} onSignOut={handleSignOut} onBack={() => setScreen("home")} />;
     return <Home user={session.user} onSignOut={handleSignOut} />;
   }
 
