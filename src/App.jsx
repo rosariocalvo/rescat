@@ -27,7 +27,6 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Listeners globales — siempre activos sin importar la pantalla
   useEffect(() => {
     const openMapa = () => setScreen("mapa");
     const openPublicar = () => setScreen("publicar");
@@ -52,32 +51,20 @@ export default function App() {
   if (session) {
     if (screen === "mapa") return <MapScreen user={session.user} onBack={() => setScreen("home")} />;
     if (screen === "publicar") return <PublicarScreen user={session.user} onBack={() => setScreen("home")} />;
+    if (screen === "canjes") return <CanjesScreen user={session.user} onBack={() => setScreen("home")} />;
     return <Home user={session.user} onSignOut={handleSignOut} />;
   }
 
-  // Flujo de onboarding
   if (screen === "splash") return <Splash onDone={() => setScreen("onboarding")} />;
   if (screen === "onboarding") return <Onboarding onDone={() => setScreen("welcome")} />;
   if (screen === "welcome") return (
-    <Welcome
-      onSignUp={() => setScreen("signup")}
-      onSignIn={() => setScreen("signin")}
-    />
+    <Welcome onSignUp={() => setScreen("signup")} onSignIn={() => setScreen("signin")} />
   );
   if (screen === "signin") return (
-    <SignIn
-      onBack={() => setScreen("welcome")}
-      onSignUp={() => setScreen("signup")}
-      onSuccess={() => setScreen("home")}
-    />
+    <SignIn onBack={() => setScreen("welcome")} onSignUp={() => setScreen("signup")} onSuccess={() => setScreen("home")} />
   );
   if (screen === "signup") return (
-    <SignUp
-      onBack={() => setScreen("welcome")}
-      onSignIn={() => setScreen("signin")}
-      onSuccess={() => setScreen("signin")}
-    />
+    <SignUp onBack={() => setScreen("welcome")} onSignIn={() => setScreen("signin")} onSuccess={() => setScreen("signin")} />
   );
-
   return null;
 }
