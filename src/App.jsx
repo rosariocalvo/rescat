@@ -8,6 +8,7 @@ import SignUp from "./screens/SignUp";
 import Home from "./screens/Home";
 import MapScreen from "./screens/MapScreen";
 import PublicarScreen from "./screens/PublicarScreen";
+import CanjesScreen from "./screens/CanjesScreen";
 
 export default function App() {
   const [session, setSession] = useState(null);
@@ -30,11 +31,14 @@ export default function App() {
   useEffect(() => {
     const openMapa = () => setScreen("mapa");
     const openPublicar = () => setScreen("publicar");
+    const openCanjes = () => setScreen("canjes");
     window.addEventListener("openMapa", openMapa);
     window.addEventListener("openPublicar", openPublicar);
+    window.addEventListener("openCanjes", openCanjes);
     return () => {
       window.removeEventListener("openMapa", openMapa);
       window.removeEventListener("openPublicar", openPublicar);
+      window.removeEventListener("openCanjes", openCanjes);
     };
   }, []);
 
