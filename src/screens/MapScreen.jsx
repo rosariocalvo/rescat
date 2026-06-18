@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "../supabase";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -44,40 +44,37 @@ export default function MapScreen({ user, onBack }) {
   const [filtro,       setFiltro]       = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [textoBusq,    setTextoBusq]    = useState("");
+  const [reloadTick,   setReloadTick]   = useState(0);
 
   const nombre     = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
   const dc         = user?.user_metadata?.dc || 240;
   const firstName  = nombre.split(" ")[0].toUpperCase();
 
-  // ── Cargar publicaciones con filtro ────────────────────────────────────
-  const cargarPublicaciones = useCallback(async () => {
-    let q = supabase
-      .from("publicaciones")
-      .select("*")
-      .eq("estado", "activa")
-      .not("latitud", "is", null);
+  // ── Cargar publicaciones — se re-ejecuta cuando cambia radio, filtro o userPos
+  useEffect(() => {
+    async function cargar() {
+      let q = supabase
+        .from("publicaciones")
+        .select("*")
+        .eq("estado", "activa")
+        .not("latitud", "is", null);
 
-    // Filtro por tipo: búsqueda parcial case-insensitive
-    if (filtro) {
-      q = q.ilike("nombre_insumo", `%${filtro}%`);
+      if (filtro) q = q.ilike("nombre_insumo", `%${filtro}%`);
+
+      const { data } = await q;
+      if (!data) return;
+
+      if (userPosRef.current) {
+        const { lat, lng } = userPosRef.current;
+        setPublicaciones(data.filter(p =>
+          distanciaKm(lat, lng, p.latitud, p.longitud) <= radio
+        ));
+      } else {
+        setPublicaciones(data);
+      }
     }
-
-    const { data } = await q;
-    if (!data) return;
-
-    // Filtrar por radio si tenemos posición del usuario
-    if (userPosRef.current) {
-      const { lat, lng } = userPosRef.current;
-      const filtradas = data.filter(p =>
-        distanciaKm(lat, lng, p.latitud, p.longitud) <= radio
-      );
-      setPublicaciones(filtradas);
-    } else {
-      setPublicaciones(data);
-    }
-  }, [radio, filtro, userPos]);
-
-  useEffect(() => { cargarPublicaciones(); }, [cargarPublicaciones]);
+    cargar();
+  }, [radio, filtro, userPos, reloadTick]);
 
   // ── Realtime: escuchar inserciones nuevas en publicaciones ─────────────
   useEffect(() => {
@@ -86,7 +83,7 @@ export default function MapScreen({ user, onBack }) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "publicaciones" },
-        () => { cargarPublicaciones(); }
+        () => { setReloadTick(t => t + 1); }
       )
       .subscribe();
 
@@ -115,7 +112,7 @@ export default function MapScreen({ user, onBack }) {
         el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;box-shadow:0 0 0 0 rgba(30,42,74,0.4);animation:pulse 2s infinite;";
         new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
         // Recargar con posición real
-        cargarPublicaciones();
+        setReloadTick(t => t + 1);
       });
     }
   }, []);
