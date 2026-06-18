@@ -12,40 +12,35 @@ const IconoDC = () => (
   </svg>
 );
 
-// ── Íconos BottomNav ──────────────────────────────────────────────────────
 const IcoInicio   = ({a}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={a?"white":"#b0b8d0"}/></svg>;
 const IcoPublicar = ({a}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.5" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M12 8v8M8 12h8" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>;
 const IcoBuscar   = ({a}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M16.5 16.5L21 21" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>;
 const IcoCanjes   = ({a}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 9h13M4 9l3-3M4 9l3 3" stroke={a?"white":"#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M20 15H7M20 15l-3-3M20 15l-3 3" stroke={a?"white":"#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 const IcoPerfil   = ({a}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={a?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>;
 
-function BottomNav({ active, onNav }) {
-  const tabs = [
-    { id:"inicio", label:"Inicio", Ico:IcoInicio },
-    { id:"publicar", label:"Publicar", Ico:IcoPublicar },
-    { id:"buscar", label:"Buscar", Ico:IcoBuscar },
-    { id:"canjes", label:"Canjes", Ico:IcoCanjes },
-    { id:"perfil", label:"Perfil", Ico:IcoPerfil },
-  ];
+function BottomNav({ onNav }) {
   return (
     <nav style={{ position:"fixed", bottom:0, left:"50%", transform:"translateX(-50%)", width:"100%", maxWidth:430, background:"white", borderRadius:"20px 20px 0 0", boxShadow:"0 -2px 20px rgba(30,42,74,0.08)", display:"flex", alignItems:"center", height:72, zIndex:100 }}>
-      {tabs.map(({ id, label, Ico }) => {
-        const isActive = active === id;
-        return (
-          <button key={id} onClick={() => onNav(id)} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", padding:"6px 4px" }}>
-            <div style={{ width:44, height:44, borderRadius:14, background:isActive?"#1e2a4a":"transparent", display:"flex", alignItems:"center", justifyContent:"center" }}>
-              <Ico a={isActive} />
-            </div>
-            <span style={{ fontSize:10, fontWeight:isActive?700:400, color:isActive?"#1e2a4a":"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>{label}</span>
-          </button>
-        );
-      })}
+      {[
+        { id:"inicio", label:"Inicio", Ico:IcoInicio },
+        { id:"publicar", label:"Publicar", Ico:IcoPublicar },
+        { id:"buscar", label:"Buscar", Ico:IcoBuscar },
+        { id:"canjes", label:"Canjes", Ico:IcoCanjes, active:true },
+        { id:"perfil", label:"Perfil", Ico:IcoPerfil },
+      ].map(({ id, label, Ico, active }) => (
+        <button key={id} onClick={() => onNav(id)} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", padding:"6px 4px" }}>
+          <div style={{ width:44, height:44, borderRadius:14, background:active?"#1e2a4a":"transparent", display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <Ico a={!!active} />
+          </div>
+          <span style={{ fontSize:10, fontWeight:active?700:400, color:active?"#1e2a4a":"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>{label}</span>
+        </button>
+      ))}
     </nav>
   );
 }
 
-// ── Chat individual ───────────────────────────────────────────────────────
-function ChatScreen({ user, publicacion, otroUserId, otroNombre, onBack }) {
+// ── Chat ──────────────────────────────────────────────────────────────────
+function ChatScreen({ user, publicacion, otroNombre, onBack }) {
   const [mensajes, setMensajes] = useState([]);
   const [texto, setTexto] = useState("");
   const bottomRef = useRef(null);
@@ -53,69 +48,57 @@ function ChatScreen({ user, publicacion, otroUserId, otroNombre, onBack }) {
   useEffect(() => {
     cargarMensajes();
     const ch = supabase.channel("chat-" + publicacion.id)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "mensajes" }, (payload) => {
-        if (payload.new.publicacion_id === publicacion.id) {
-          setMensajes(prev => [...prev, payload.new]);
-        }
-      })
-      .subscribe();
+      .on("postgres_changes", { event:"INSERT", schema:"public", table:"mensajes" }, (payload) => {
+        if (payload.new.publicacion_id === publicacion.id) setMensajes(p => [...p, payload.new]);
+      }).subscribe();
     return () => supabase.removeChannel(ch);
   }, []);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [mensajes]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [mensajes]);
 
   async function cargarMensajes() {
-    const { data } = await supabase.from("mensajes")
-      .select("*")
-      .eq("publicacion_id", publicacion.id)
-      .order("created_at", { ascending: true });
+    const { data } = await supabase.from("mensajes").select("*")
+      .eq("publicacion_id", publicacion.id).order("created_at", { ascending:true });
     if (data) setMensajes(data);
   }
 
   async function enviar() {
     if (!texto.trim()) return;
+    const otroId = publicacion.user_id === user.id ? null : publicacion.user_id;
     await supabase.from("mensajes").insert({
       publicacion_id: publicacion.id,
       remitente_id: user.id,
-      destinatario_id: otroUserId,
+      destinatario_id: otroId,
       contenido: texto.trim(),
     });
     setTexto("");
   }
 
-  async function completarCanje() {
-    await supabase.from("publicaciones").update({ estado: "completada" }).eq("id", publicacion.id);
+  async function completar() {
+    await supabase.from("publicaciones").update({ estado:"completada" }).eq("id", publicacion.id);
     onBack();
   }
 
-  const formatHora = (iso) => {
-    const d = new Date(iso);
-    return d.toLocaleTimeString("es-CL", { hour:"2-digit", minute:"2-digit" });
-  };
+  const formatHora = (iso) => new Date(iso).toLocaleTimeString("es-CL", { hour:"2-digit", minute:"2-digit" });
 
   return (
     <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"#f0f0f5", display:"flex", flexDirection:"column", fontFamily:"Outfit, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
-
-      {/* Header */}
       <div style={{ padding:"52px 24px 16px", background:"white", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 8px rgba(30,42,74,0.06)", flexShrink:0 }}>
-        <button onClick={onBack} style={{ background:"#f0f0f5", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
+        <button onClick={onBack} style={{ background:"#f0f0f5", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div style={{ flex:1 }}>
           <p style={{ margin:0, fontSize:17, fontWeight:700, color:"#1e2a4a" }}>{otroNombre}</p>
-          <p style={{ margin:0, fontSize:12, color:"#7890D0", fontWeight:600 }}>● Intercambio activo</p>
+          <p style={{ margin:0, fontSize:12, color:"#22c55e", fontWeight:600 }}>● Intercambio activo</p>
         </div>
-        <button onClick={completarCanje} style={{ background:"#1e2a4a", border:"none", borderRadius:50, padding:"8px 14px", color:"white", fontSize:12, fontWeight:700, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-          ✓ Completar
-        </button>
+        {publicacion.user_id === user.id && (
+          <button onClick={completar} style={{ background:"#1e2a4a", border:"none", borderRadius:50, padding:"8px 14px", color:"white", fontSize:12, fontWeight:700, cursor:"pointer" }}>✓ Completar</button>
+        )}
       </div>
 
-      {/* Info insumo */}
       <div style={{ margin:"12px 16px 0", background:"white", borderRadius:16, padding:"12px 16px", display:"flex", alignItems:"center", gap:12, flexShrink:0 }}>
-        <div style={{ width:44, height:44, borderRadius:12, background:"#f0f1f9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+        <div style={{ width:44, height:44, borderRadius:12, background:"#f0f1f9", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3" stroke="#7890D0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </div>
         <div>
@@ -124,24 +107,15 @@ function ChatScreen({ user, publicacion, otroUserId, otroNombre, onBack }) {
         </div>
       </div>
 
-      {/* Mensajes */}
       <div style={{ flex:1, overflowY:"auto", padding:"16px", display:"flex", flexDirection:"column", gap:10 }}>
         {mensajes.length === 0 && (
-          <div style={{ textAlign:"center", color:"#b0b8d0", fontSize:13, marginTop:40 }}>
-            <p>Inicia la conversación 👋</p>
-            <p style={{ fontSize:12 }}>Coordina el punto de encuentro y horario</p>
-          </div>
+          <p style={{ textAlign:"center", color:"#b0b8d0", fontSize:13, marginTop:40 }}>Inicia la conversación 👋</p>
         )}
         {mensajes.map((msg) => {
           const esMio = msg.remitente_id === user.id;
           return (
             <div key={msg.id} style={{ display:"flex", justifyContent:esMio?"flex-end":"flex-start" }}>
-              <div style={{
-                maxWidth:"75%", padding:"10px 14px", borderRadius:esMio?"18px 18px 4px 18px":"18px 18px 18px 4px",
-                background:esMio?"#1e2a4a":"white",
-                color:esMio?"white":"#1e2a4a",
-                boxShadow:"0 1px 4px rgba(30,42,74,0.08)",
-              }}>
+              <div style={{ maxWidth:"75%", padding:"10px 14px", borderRadius:esMio?"18px 18px 4px 18px":"18px 18px 18px 4px", background:esMio?"#1e2a4a":"white", color:esMio?"white":"#1e2a4a", boxShadow:"0 1px 4px rgba(30,42,74,0.08)" }}>
                 <p style={{ margin:"0 0 4px", fontSize:14, lineHeight:1.4 }}>{msg.contenido}</p>
                 <p style={{ margin:0, fontSize:10, opacity:0.6, textAlign:"right" }}>{formatHora(msg.created_at)}</p>
               </div>
@@ -151,16 +125,12 @@ function ChatScreen({ user, publicacion, otroUserId, otroNombre, onBack }) {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input mensaje */}
       <div style={{ padding:"12px 16px 28px", background:"white", display:"flex", gap:10, alignItems:"center", flexShrink:0 }}>
-        <input
-          value={texto}
-          onChange={e => setTexto(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && enviar()}
+        <input value={texto} onChange={e => setTexto(e.target.value)} onKeyDown={e => e.key==="Enter" && enviar()}
           placeholder="Escribe un mensaje..."
           style={{ flex:1, padding:"12px 16px", borderRadius:50, border:"1.5px solid #e0e2ec", fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", outline:"none", background:"#f5f6fc" }}
         />
-        <button onClick={enviar} style={{ width:46, height:46, borderRadius:"50%", background:texto.trim()?"#1e2a4a":"#e0e2ec", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, transition:"background 0.2s" }}>
+        <button onClick={enviar} style={{ width:46, height:46, borderRadius:"50%", background:texto.trim()?"#1e2a4a":"#e0e2ec", border:"none", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
       </div>
@@ -168,7 +138,7 @@ function ChatScreen({ user, publicacion, otroUserId, otroNombre, onBack }) {
   );
 }
 
-// ── Lista de canjes ───────────────────────────────────────────────────────
+// ── Lista canjes ──────────────────────────────────────────────────────────
 export default function CanjesScreen({ user, onBack }) {
   const [tab, setTab] = useState("activos");
   const [canjes, setCanjes] = useState([]);
@@ -178,68 +148,43 @@ export default function CanjesScreen({ user, onBack }) {
   const dc = user?.user_metadata?.dc || 240;
   const firstName = nombre.split(" ")[0].toUpperCase();
 
-  useEffect(() => {
-    cargar();
-    // Realtime
-    const ch = supabase.channel("canjes-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "mensajes" }, cargar)
-      .subscribe();
-    return () => supabase.removeChannel(ch);
-  }, [tab]);
+  useEffect(() => { cargar(); }, [tab]);
 
   async function cargar() {
-    // Cargar publicaciones donde el usuario es dueño O tiene mensajes
-    const { data: misPubs } = await supabase.from("publicaciones")
-      .select("*")
-      .eq("user_id", user.id)
-      .in("estado", tab === "activos" ? ["activa"] : ["completada"]);
-
-    // Cargar mensajes del usuario para encontrar publicaciones ajenas donde participa
-    const { data: misMsgs } = await supabase.from("mensajes")
-      .select("publicacion_id")
-      .or(`remitente_id.eq.${user.id},destinatario_id.eq.${user.id}`);
-
-    const pubIdsAjenas = [...new Set((misMsgs || []).map(m => m.publicacion_id))];
-    let pubsAjenas = [];
-    if (pubIdsAjenas.length > 0) {
-      const { data } = await supabase.from("publicaciones")
-        .select("*")
-        .in("id", pubIdsAjenas)
-        .neq("user_id", user.id)
-        .in("estado", tab === "activos" ? ["activa"] : ["completada"]);
-      pubsAjenas = data || [];
-    }
-
-    const todas = [...(misPubs || []), ...pubsAjenas];
-    setCanjes(todas);
+    const estados = tab === "activos" ? ["activa"] : ["completada", "cancelada"];
+    const { data: misPubs } = await supabase.from("publicaciones").select("*")
+      .eq("user_id", user.id).in("estado", estados).order("created_at", { ascending:false });
+    setCanjes(misPubs || []);
   }
 
-  function formatFecha(iso) {
-    return new Date(iso).toLocaleDateString("es-CL", { day:"numeric", month:"short" });
+  async function cancelar(pub) {
+    const ok = window.confirm("¿Cancelar esta publicación?");
+    if (!ok) return;
+    const { error } = await supabase.from("publicaciones").update({ estado:"cancelada" }).eq("id", pub.id);
+    if (!error) cargar();
   }
 
-  function estadoColor(estado) {
-    if (estado === "activa") return "#22c55e";
-    if (estado === "completada") return "#7890D0";
-    return "#f59e0b";
+  function estadoColor(pub) {
+    if (pub.estado === "completada") return "#7890D0";
+    if (pub.estado === "cancelada") return "#b0b8d0";
+    return pub.tipo === "compartir" ? "#22c55e" : "#f59e0b";
   }
 
   function estadoLabel(pub) {
     if (pub.estado === "completada") return "Completado";
-    if (pub.user_id === user.id) return pub.tipo === "compartir" ? "Compartiendo" : "Solicitando";
-    return pub.tipo === "compartir" ? "Reservado" : "Solicitud enviada";
+    if (pub.estado === "cancelada") return "Cancelado";
+    return pub.tipo === "compartir" ? "Activo" : "Solicitud enviada";
+  }
+
+  function formatFecha(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d)) return "";
+    return d.toLocaleDateString("es-CL", { day:"numeric", month:"short" });
   }
 
   if (chatAbierto) {
-    return (
-      <ChatScreen
-        user={user}
-        publicacion={chatAbierto.pub}
-        otroUserId={chatAbierto.otroId}
-        otroNombre={chatAbierto.otroNombre}
-        onBack={() => { setChatAbierto(null); cargar(); }}
-      />
-    );
+    return <ChatScreen user={user} publicacion={chatAbierto.pub} otroNombre={chatAbierto.otroNombre} onBack={() => { setChatAbierto(null); cargar(); }} />;
   }
 
   return (
@@ -263,25 +208,16 @@ export default function CanjesScreen({ user, onBack }) {
         {/* Tabs */}
         <div style={{ display:"flex", background:"white", borderRadius:50, padding:4, marginBottom:24, boxShadow:"0 1px 6px rgba(30,42,74,0.06)" }}>
           {["activos","historial"].map(t => (
-            <button key={t} onClick={() => setTab(t)} style={{
-              flex:1, padding:"10px", borderRadius:50, border:"none", cursor:"pointer",
-              fontWeight:700, fontSize:13, fontFamily:"Outfit, sans-serif",
-              background: tab===t ? "#1e2a4a" : "transparent",
-              color: tab===t ? "white" : "#7b80a0",
-              transition:"all 0.2s",
-            }}>
+            <button key={t} onClick={() => setTab(t)} style={{ flex:1, padding:"10px", borderRadius:50, border:"none", cursor:"pointer", fontWeight:700, fontSize:13, fontFamily:"Outfit, sans-serif", background:tab===t?"#1e2a4a":"transparent", color:tab===t?"white":"#7b80a0", transition:"all 0.2s" }}>
               {t === "activos" ? "Activos" : "Historial"}
             </button>
           ))}
         </div>
 
-        {/* Lista */}
         {canjes.length === 0 ? (
-          <div style={{ paddingTop:60 }}>
-            <p style={{ color:"#b0b8d0", fontSize:14, fontFamily:"Outfit, sans-serif" }}>
-              {tab === "activos" ? "No tienes canjes activos aún." : "Sin historial aún."}
-            </p>
-          </div>
+          <p style={{ color:"#b0b8d0", fontSize:14, fontFamily:"Outfit, sans-serif" }}>
+            {tab === "activos" ? "No tienes canjes activos aún." : "Sin historial aún."}
+          </p>
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
             {canjes.map((pub) => (
@@ -289,20 +225,18 @@ export default function CanjesScreen({ user, onBack }) {
                 {/* Estado + fecha */}
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <div style={{ width:8, height:8, borderRadius:"50%", background:estadoColor(pub.estado) }} />
-                    <span style={{ fontSize:12, fontWeight:600, color:estadoColor(pub.estado), fontFamily:"Outfit, sans-serif" }}>
-                      {estadoLabel(pub)}
-                    </span>
+                    <div style={{ width:8, height:8, borderRadius:"50%", background:estadoColor(pub) }} />
+                    <span style={{ fontSize:12, fontWeight:600, color:estadoColor(pub), fontFamily:"Outfit, sans-serif" }}>{estadoLabel(pub)}</span>
                   </div>
                   <span style={{ fontSize:11, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>{formatFecha(pub.created_at)}</span>
                 </div>
 
-                {/* Info publicación */}
+                {/* Info */}
                 <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:12 }}>
                   {pub.foto_url ? (
-                    <img src={pub.foto_url} style={{ width:56, height:56, borderRadius:14, objectFit:"cover", flexShrink:0 }} alt="" />
+                    <img src={pub.foto_url} style={{ width:60, height:60, borderRadius:14, objectFit:"cover", flexShrink:0 }} alt="" />
                   ) : (
-                    <div style={{ width:56, height:56, borderRadius:14, background:pub.tipo==="compartir"?"#f0f1f9":"#fff0f2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                    <div style={{ width:60, height:60, borderRadius:14, background:pub.tipo==="compartir"?"#f0f1f9":"#fff0f2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3" stroke={pub.tipo==="compartir"?"#7890D0":"#EC6765"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </div>
                   )}
@@ -312,34 +246,27 @@ export default function CanjesScreen({ user, onBack }) {
                     <div style={{ display:"flex", alignItems:"center", gap:4 }}>
                       <IconoDC />
                       <span style={{ fontSize:13, fontWeight:700, color:"#7890D0" }}>
-                        {pub.tipo==="compartir"?"+":"-"}{pub.dc_valor || 50} DC
+                        {pub.tipo==="compartir"?"+":"-"}50 DC
                       </span>
                     </div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#b0b8d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#b0b8d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
 
-                {/* Botones acción */}
+                {/* Botones */}
                 {tab === "activos" && (
-                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  <div style={{ display:"flex", gap:8 }}>
                     <button
-                      onClick={() => setChatAbierto({ pub, otroId: pub.user_id === user.id ? null : pub.user_id, otroNombre: pub.anonimo ? "Anónimo" : "Miembro RESCAT" })}
-                      style={{ flex:1, padding:"10px", background:"#f0f1f9", border:"none", borderRadius:50, fontWeight:600, fontSize:13, color:"#7890D0", cursor:"pointer", fontFamily:"Outfit, sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-                      Chat
+                      onClick={() => setChatAbierto({ pub, otroNombre:"Miembro RESCAT" })}
+                      style={{ flex:1, padding:"11px", background:"#f0f1f9", border:"none", borderRadius:50, fontWeight:600, fontSize:13, color:"#7890D0", cursor:"pointer", fontFamily:"Outfit, sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+                      Abrir chat
                     </button>
-                    {pub.user_id === user.id && (
-                      <button
-                        onClick={async () => {
-                          if (confirm("¿Cancelar esta publicación?")) {
-                            await supabase.from("publicaciones").update({ estado: "cancelada" }).eq("id", pub.id);
-                            cargar();
-                          }
-                        }}
-                        style={{ flex:1, padding:"10px", background:"#fff0f2", border:"1.5px solid #ffd0d4", borderRadius:50, fontWeight:600, fontSize:13, color:"#EC6765", cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-                        Cancelar
-                      </button>
-                    )}
+                    <button
+                      onClick={() => cancelar(pub)}
+                      style={{ flex:1, padding:"11px", background:"#fff0f2", border:"1.5px solid #ffd0d4", borderRadius:50, fontWeight:600, fontSize:13, color:"#EC6765", cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                      Cancelar
+                    </button>
                   </div>
                 )}
               </div>
@@ -348,10 +275,10 @@ export default function CanjesScreen({ user, onBack }) {
         )}
       </div>
 
-      <BottomNav active="canjes" onNav={(tab) => {
-        if (tab === "canjes") return;
-        if (tab === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
-        if (tab === "buscar") { window.dispatchEvent(new CustomEvent("openMapa")); return; }
+      <BottomNav onNav={(t) => {
+        if (t === "canjes") return;
+        if (t === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
+        if (t === "buscar") { window.dispatchEvent(new CustomEvent("openMapa")); return; }
         onBack();
       }} />
     </div>
