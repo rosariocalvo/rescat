@@ -581,10 +581,9 @@ export default function PublicarScreen({ user, onBack }) {
       {view==="ok_compartir" && <Confirmacion tipo="compartir" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
       {view==="ok_ayudar" && <Confirmacion tipo="ayudar" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
       <BottomNav activeTab="publicar" onTabChange={(tab)=>{
-        if (tab === "inicio") onBack();
-        else if (tab === "buscar") { onBack(); setTimeout(() => window.dispatchEvent(new CustomEvent("openMapa")), 80); }
-        else if (tab === "canjes") onBack();
-        else if (tab === "perfil") onBack();
+        if (tab === "buscar") window.dispatchEvent(new CustomEvent("openMapa"));
+        else if (tab === "inicio") onBack();
+        else onBack();
       }}/>
     </div>
   );
