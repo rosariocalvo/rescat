@@ -33,20 +33,44 @@ export default function MapScreen({ user, onBack }) {
   const mapContainer = useRef(null);
   const map          = useRef(null);
   const markersRef   = useRef([]);
-  const userLatLng   = useRef(null);
 
-  const [radio,        setRadio]        = useState(2);
-  const [pubs,         setPubs]         = useState([]);
-  const [selected,     setSelected]     = useState(null);
-  const [filtro,       setFiltro]       = useState("");
-  const [textoBusq,    setTextoBusq]    = useState("");
-  const [showDrop,     setShowDrop]     = useState(false);
-  const [tick,         setTick]         = useState(0);
-  const [userPos,      setUserPos]      = useState(null); // state reactivo para re-filtrar
+  const [radio,     setRadio]     = useState(2);
+  const [todasPubs, setTodasPubs] = useState([]); // TODAS sin filtrar por radio
+  const [filtro,    setFiltro]    = useState("");
+  const [textoBusq, setTextoBusq] = useState("");
+  const [showDrop,  setShowDrop]  = useState(false);
+  const [selected,  setSelected]  = useState(null);
+  const [userPos,   setUserPos]   = useState(null);
 
   const nombre    = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
   const dc        = user?.user_metadata?.dc || 240;
   const firstName = nombre.split(" ")[0].toUpperCase();
+
+  // Publicaciones filtradas — se recalcula cuando cambia radio, filtro o userPos
+  const pubs = todasPubs.filter(p => {
+    if (filtro && !p.nombre_insumo?.toLowerCase().includes(filtro.toLowerCase())) return false;
+    if (userPos && p.latitud && p.longitud) {
+      return distKm(userPos.lat, userPos.lng, p.latitud, p.longitud) <= radio;
+    }
+    return true; // sin GPS, mostrar todo
+  });
+
+  // ── Cargar TODAS las publicaciones activas ─────────────────────────────
+  useEffect(() => {
+    supabase.from("publicaciones").select("*").eq("estado","activa").not("latitud","is",null)
+      .then(({ data }) => { if (data) setTodasPubs(data); });
+  }, []);
+
+  // ── Realtime ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const ch = supabase.channel("mapa-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "publicaciones" }, () => {
+        supabase.from("publicaciones").select("*").eq("estado","activa").not("latitud","is",null)
+          .then(({ data }) => { if (data) setTodasPubs(data); });
+      })
+      .subscribe();
+    return () => supabase.removeChannel(ch);
+  }, []);
 
   // ── Init mapa ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -60,43 +84,15 @@ export default function MapScreen({ user, onBack }) {
     });
     navigator.geolocation?.getCurrentPosition((pos) => {
       const { latitude: lat, longitude: lng } = pos.coords;
-      userLatLng.current = { lat, lng };
       setUserPos({ lat, lng });
       map.current.flyTo({ center: [lng, lat], zoom: 14 });
       const el = document.createElement("div");
-      el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;box-shadow:0 0 0 0 rgba(30,42,74,0.4);animation:pulse 2s infinite;";
+      el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;animation:pulse 2s infinite;";
       new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
-      setTick(t => t + 1); // recargar publicaciones con posición real
     });
   }, []);
 
-  // ── Cargar publicaciones ───────────────────────────────────────────────
-  useEffect(() => {
-    async function cargar() {
-      let q = supabase.from("publicaciones").select("*").eq("estado","activa").not("latitud","is",null);
-      if (filtro) q = q.ilike("nombre_insumo", "%" + filtro + "%");
-      const { data, error } = await q;
-      if (error || !data) return;
-      if (userPos) {
-        setPubs(data.filter(p => distKm(userPos.lat, userPos.lng, p.latitud, p.longitud) <= radio));
-      } else {
-        setPubs(data);
-      }
-    }
-    cargar();
-  }, [radio, filtro, tick, userPos]);
-
-  // ── Realtime ───────────────────────────────────────────────────────────
-  useEffect(() => {
-    const ch = supabase.channel("mapa-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "publicaciones" }, () => {
-        setTick(t => t + 1);
-      })
-      .subscribe();
-    return () => supabase.removeChannel(ch);
-  }, []);
-
-  // ── Marcadores ────────────────────────────────────────────────────────
+  // ── Marcadores — se actualizan cuando cambia pubs ──────────────────────
   useEffect(() => {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
@@ -104,7 +100,7 @@ export default function MapScreen({ user, onBack }) {
       if (!pub.latitud || !pub.longitud) return;
       const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
       const el = document.createElement("div");
-      el.style.cssText = "width:14px;height:14px;border-radius:50%;background:" + color + ";border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer;";
+      el.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;`;
       el.addEventListener("click", () => {
         setSelected(pub);
         map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
@@ -146,10 +142,10 @@ export default function MapScreen({ user, onBack }) {
         <div ref={mapContainer} style={{ width:"100%", height:"100%" }} />
 
         {/* Pills KM */}
-        <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6, pointerEvents:"auto" }}>
+        <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6 }}>
           {[2,5,10].map(km => (
             <button key={km} onClick={() => setRadio(km)} style={{
-              padding:"6px 18px", borderRadius:50, border:"none", cursor:"pointer",
+              padding:"7px 18px", borderRadius:50, border:"none", cursor:"pointer",
               fontWeight:700, fontSize:12, fontFamily:"Outfit, sans-serif",
               background: radio===km ? "#1e2a4a" : "white",
               color: radio===km ? "white" : "#7b80a0",
@@ -180,7 +176,7 @@ export default function MapScreen({ user, onBack }) {
             <div style={{ background:"white", borderRadius:16, marginTop:6, boxShadow:"0 4px 20px rgba(30,42,74,0.14)", overflow:"hidden" }}>
               {tiposFiltrados.map(tipo => (
                 <div key={tipo} onMouseDown={() => { setFiltro(tipo); setTextoBusq(tipo); setShowDrop(false); }}
-                  style={{ padding:"13px 18px", fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", borderBottom:"1px solid #f0f0f5", cursor:"pointer", background: filtro===tipo?"#f0f1f9":"white", fontWeight: filtro===tipo?600:400 }}>
+                  style={{ padding:"13px 18px", fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", borderBottom:"1px solid #f0f0f5", cursor:"pointer", background:filtro===tipo?"#f0f1f9":"white", fontWeight:filtro===tipo?600:400 }}>
                   {tipo}
                 </div>
               ))}
@@ -202,14 +198,14 @@ export default function MapScreen({ user, onBack }) {
             <div style={{ padding:"14px 16px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                 <div style={{ flex:1 }}>
-                  {userLatLng.current && (
+                  {userPos && selected.latitud && (
                     <p style={{ margin:"0 0 2px", fontSize:11, fontWeight:600, color:"#b0b8d0" }}>
-                      CERCANO · {distKm(userLatLng.current.lat, userLatLng.current.lng, selected.latitud, selected.longitud).toFixed(1)} KM
+                      CERCANO · {distKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1)} KM
                     </p>
                   )}
                   <p style={{ margin:"0 0 2px", fontSize:16, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
                   <p style={{ margin:0, fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif" }}>
-                    {selected.anonimo ? "Anónimo" : "Miembro RESCAT"}{selected.cantidad ? " · " + selected.cantidad : ""}
+                    {selected.anonimo ? "Anónimo" : "Miembro RESCAT"}{selected.cantidad ? " · "+selected.cantidad : ""}
                   </p>
                 </div>
                 <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", fontSize:20, color:"#b0b8d0", padding:4 }}>✕</button>
