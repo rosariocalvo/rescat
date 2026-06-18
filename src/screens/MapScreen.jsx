@@ -35,7 +35,8 @@ export default function MapScreen({ user, onBack }) {
   const mapContainer = useRef(null);
   const map          = useRef(null);
   const markersRef   = useRef([]);
-  const userPos      = useRef(null);
+  const userPosRef   = useRef(null);
+  const [userPos,    setUserPos]      = useState(null);
 
   const [radio,        setRadio]        = useState(2);
   const [publicaciones,setPublicaciones]= useState([]);
@@ -65,8 +66,8 @@ export default function MapScreen({ user, onBack }) {
     if (!data) return;
 
     // Filtrar por radio si tenemos posición del usuario
-    if (userPos.current) {
-      const { lat, lng } = userPos.current;
+    if (userPosRef.current) {
+      const { lat, lng } = userPosRef.current;
       const filtradas = data.filter(p =>
         distanciaKm(lat, lng, p.latitud, p.longitud) <= radio
       );
@@ -74,7 +75,7 @@ export default function MapScreen({ user, onBack }) {
     } else {
       setPublicaciones(data);
     }
-  }, [radio, filtro]);
+  }, [radio, filtro, userPos]);
 
   useEffect(() => { cargarPublicaciones(); }, [cargarPublicaciones]);
 
@@ -106,7 +107,8 @@ export default function MapScreen({ user, onBack }) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        userPos.current = { lat, lng };
+        userPosRef.current = { lat, lng };
+        setUserPos({ lat, lng });
         map.current.flyTo({ center: [lng, lat], zoom: 14 });
         // Punto usuario pulsante
         const el = document.createElement("div");
@@ -233,7 +235,7 @@ export default function MapScreen({ user, onBack }) {
 
         {/* Contador publicaciones visibles */}
         {publicaciones.length > 0 && (
-          <div style={{ position:"absolute", bottom: selected ? 260 : 90, right:16, zIndex:20, background:"#1e2a4a", borderRadius:50, padding:"6px 12px" }}>
+          <div style={{ position:"absolute", bottom: selected ? 260 : 82, right:16, zIndex:20, background:"#1e2a4a", borderRadius:50, padding:"6px 12px" }}>
             <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:"Outfit, sans-serif" }}>
               {publicaciones.length} {publicaciones.length === 1 ? "insumo" : "insumos"}
             </span>
@@ -249,9 +251,9 @@ export default function MapScreen({ user, onBack }) {
             <div style={{ padding:"14px 16px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
                 <div style={{ flex:1 }}>
-                  {userPos.current && (
+                  {userPos && (
                     <p style={{ margin:"0 0 2px", fontSize:11, fontWeight:600, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>
-                      CERCANO · {distanciaKm(userPos.current.lat, userPos.current.lng, selected.latitud, selected.longitud).toFixed(1)} KM
+                      CERCANO · {distanciaKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1)} KM
                     </p>
                   )}
                   <p style={{ margin:"0 0 2px", fontSize:16, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
