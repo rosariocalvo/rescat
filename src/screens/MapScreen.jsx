@@ -214,7 +214,32 @@ export default function MapScreen({ user, onBack }) {
               </div>
               {selected.mensaje && <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4, fontStyle:"italic" }}>"{selected.mensaje}"</p>}
               <div style={{ display:"flex", gap:10 }}>
-                <button onClick={() => window.dispatchEvent(new CustomEvent("openCanjes"))} style={{ flex:1, padding:"12px", background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                <button onClick={async () => {
+                  // Crear mensaje inicial para abrir chat con el dueño
+                  if (!user) return;
+                  if (selected.user_id === user.id) {
+                    alert("Esta es tu propia publicación.");
+                    return;
+                  }
+                  // Insertar mensaje inicial si no existe conversación
+                  const { data: existing } = await import("../supabase").then(m => 
+                    m.supabase.from("mensajes").select("id")
+                      .eq("publicacion_id", selected.id)
+                      .eq("remitente_id", user.id)
+                      .limit(1)
+                  );
+                  if (!existing || existing.length === 0) {
+                    await import("../supabase").then(m =>
+                      m.supabase.from("mensajes").insert({
+                        publicacion_id: selected.id,
+                        remitente_id: user.id,
+                        destinatario_id: selected.user_id,
+                        contenido: "Hola, me interesa tu publicación de " + selected.nombre_insumo + " 👋",
+                      })
+                    );
+                  }
+                  window.dispatchEvent(new CustomEvent("openCanjes"));
+                }} style={{ flex:1, padding:"12px", background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
                   Reservar canje
                 </button>
                 <button style={{ width:46, height:46, borderRadius:"50%", background:"#fff0f2", border:"1.5px solid #ffd0d4", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>

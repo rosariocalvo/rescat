@@ -152,9 +152,33 @@ export default function CanjesScreen({ user, onBack }) {
 
   async function cargar() {
     const estados = tab === "activos" ? ["activa"] : ["completada", "cancelada"];
+
+    // Mis publicaciones
     const { data: misPubs } = await supabase.from("publicaciones").select("*")
       .eq("user_id", user.id).in("estado", estados).order("created_at", { ascending:false });
-    setCanjes(misPubs || []);
+
+    // Publicaciones ajenas donde tengo mensajes (yo contacté a alguien)
+    const { data: misMsgs } = await supabase.from("mensajes").select("publicacion_id")
+      .eq("remitente_id", user.id);
+    const pubIdsAjenas = [...new Set((misMsgs || []).map(m => m.publicacion_id))];
+
+    let pubsAjenas = [];
+    if (pubIdsAjenas.length > 0) {
+      const { data } = await supabase.from("publicaciones").select("*")
+        .in("id", pubIdsAjenas).neq("user_id", user.id).in("estado", estados);
+      pubsAjenas = data || [];
+    }
+
+    // Publicaciones mías donde alguien me escribió (me contactaron)
+    const { data: mensajesRecibidos } = await supabase.from("mensajes").select("publicacion_id")
+      .eq("destinatario_id", user.id);
+    const pubIdsContactadas = [...new Set((mensajesRecibidos || []).map(m => m.publicacion_id))];
+    const misPubsIds = (misPubs || []).map(p => p.id);
+    // Agregar las mías que tienen mensajes si no están ya
+    const todas = [...(misPubs || []), ...pubsAjenas];
+    const idsYa = new Set(todas.map(p => p.id));
+    // Marcar las que tienen mensajes nuevos
+    setCanjes(todas);
   }
 
   async function cancelar(pub) {
