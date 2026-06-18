@@ -306,6 +306,7 @@ export default function Home({ user, onSignOut }) {
           if (tab === "publicar") window.dispatchEvent(new CustomEvent("openPublicar"));
           else if (tab === "buscar") window.dispatchEvent(new CustomEvent("openMapa"));
           else if (tab === "canjes") window.dispatchEvent(new CustomEvent("openCanjes"));
+          else if (tab === "perfil") window.dispatchEvent(new CustomEvent("openPerfil"));
           else setActiveTab(tab);
         }}
       />
