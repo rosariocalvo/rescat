@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "../supabase";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -14,50 +14,85 @@ const IconoDC = () => (
   </svg>
 );
 
-const IconInicio = ({ active }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active ? "white" : "#b0b8d0"}/>
-  </svg>
-);
-const IconPublicar = ({ active }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="9.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M12 8v8M8 12h8" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-const IconBuscar = ({ active }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="11" cy="11" r="7.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M16.5 16.5L21 21" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-const IconCanjes = ({ active }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <path d="M4 9h13M4 9l3-3M4 9l3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M20 15H7M20 15l-3-3M20 15l-3 3" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-  </svg>
-);
-const IconPerfil = ({ active }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="8" r="3.5" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5"/>
-    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active ? "white" : "#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
+const TIPOS = ["Insulina", "Sensor CGM", "Bomba de insulina", "Tiras reactivas", "Lancetas", "Glucómetro", "Otro"];
+
+const IconInicio  = ({ active }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill={active?"white":"#b0b8d0"}/></svg>);
+const IconPublicar= ({ active }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.5" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M12 8v8M8 12h8" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>);
+const IconBuscar  = ({ active }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M16.5 16.5L21 21" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>);
+const IconCanjes  = ({ active }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 9h13M4 9l3-3M4 9l3 3" stroke={active?"white":"#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M20 15H7M20 15l-3-3M20 15l-3 3" stroke={active?"white":"#b0b8d0"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>);
+const IconPerfil  = ({ active }) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke={active?"white":"#b0b8d0"} strokeWidth="1.5" strokeLinecap="round"/></svg>);
+
+// Distancia en km entre dos coordenadas
+function distanciaKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
 export default function MapScreen({ user, onBack }) {
   const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [radio, setRadio] = useState(2);
-  const [publicaciones, setPublicaciones] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [userPos, setUserPos] = useState(null);
-  const markersRef = useRef([]);
+  const map          = useRef(null);
+  const markersRef   = useRef([]);
+  const userPos      = useRef(null);
 
-  const nombre = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
-  const dc = user?.user_metadata?.dc || 240;
-  const firstName = nombre.split(" ")[0].toUpperCase();
+  const [radio,        setRadio]        = useState(2);
+  const [publicaciones,setPublicaciones]= useState([]);
+  const [selected,     setSelected]     = useState(null);
+  const [filtro,       setFiltro]       = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [textoBusq,    setTextoBusq]    = useState("");
 
-  // Inicializar mapa
+  const nombre     = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
+  const dc         = user?.user_metadata?.dc || 240;
+  const firstName  = nombre.split(" ")[0].toUpperCase();
+
+  // ── Cargar publicaciones con filtro ────────────────────────────────────
+  const cargarPublicaciones = useCallback(async () => {
+    let q = supabase
+      .from("publicaciones")
+      .select("*")
+      .eq("estado", "activa")
+      .not("latitud", "is", null);
+
+    // Filtro por tipo: búsqueda parcial case-insensitive
+    if (filtro) {
+      q = q.ilike("nombre_insumo", `%${filtro}%`);
+    }
+
+    const { data } = await q;
+    if (!data) return;
+
+    // Filtrar por radio si tenemos posición del usuario
+    if (userPos.current) {
+      const { lat, lng } = userPos.current;
+      const filtradas = data.filter(p =>
+        distanciaKm(lat, lng, p.latitud, p.longitud) <= radio
+      );
+      setPublicaciones(filtradas);
+    } else {
+      setPublicaciones(data);
+    }
+  }, [radio, filtro]);
+
+  useEffect(() => { cargarPublicaciones(); }, [cargarPublicaciones]);
+
+  // ── Realtime: escuchar inserciones nuevas en publicaciones ─────────────
+  useEffect(() => {
+    const channel = supabase
+      .channel("publicaciones-mapa")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "publicaciones" },
+        () => { cargarPublicaciones(); }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [cargarPublicaciones]);
+
+  // ── Inicializar mapa ───────────────────────────────────────────────────
   useEffect(() => {
     if (map.current) return;
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -68,51 +103,37 @@ export default function MapScreen({ user, onBack }) {
       center: [-70.6483, -33.4569],
     });
 
-    // Geolocalización
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
         const { latitude: lat, longitude: lng } = pos.coords;
-        setUserPos({ lat, lng });
+        userPos.current = { lat, lng };
         map.current.flyTo({ center: [lng, lat], zoom: 14 });
-
-        // Punto usuario — círculo azul oscuro pulsante
+        // Punto usuario pulsante
         const el = document.createElement("div");
-        el.style.cssText = `
-          width: 16px; height: 16px; border-radius: 50%;
-          background: #1e2a4a; border: 3px solid white;
-          box-shadow: 0 0 0 0 rgba(30,42,74,0.4);
-          animation: pulse 2s infinite;
-        `;
+        el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;box-shadow:0 0 0 0 rgba(30,42,74,0.4);animation:pulse 2s infinite;";
         new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
+        // Recargar con posición real
+        cargarPublicaciones();
       });
     }
   }, []);
 
-  // Cargar publicaciones según radio
-  useEffect(() => {
-    supabase.from("publicaciones").select("*").eq("estado", "activa")
-      .not("latitud", "is", null)
-      .then(({ data }) => { if (data) setPublicaciones(data); });
-  }, [radio]);
-
-  // Poner marcadores
+  // ── Renderizar marcadores ──────────────────────────────────────────────
   useEffect(() => {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
     publicaciones.forEach((pub) => {
       if (!pub.latitud || !pub.longitud) return;
-      const isCompartir = pub.tipo === "compartir";
-      const color = isCompartir ? "#7890D0" : "#EC6765";
-
+      const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
       const el = document.createElement("div");
-      el.style.cssText = `
-        width: 14px; height: 14px; border-radius: 50%;
-        background: ${color}; border: 2.5px solid white;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15); cursor: pointer;
-      `;
-      el.addEventListener("click", () => setSelected(pub));
-
+      el.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer;transition:transform 0.15s;`;
+      el.addEventListener("mouseenter", () => el.style.transform = "scale(1.4)");
+      el.addEventListener("mouseleave", () => el.style.transform = "scale(1)");
+      el.addEventListener("click", () => {
+        setSelected(pub);
+        map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 600 });
+      });
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([pub.longitud, pub.latitud])
         .addTo(map.current);
@@ -120,113 +141,158 @@ export default function MapScreen({ user, onBack }) {
     });
   }, [publicaciones]);
 
-  function handleNavTab(tab) {
-    if (tab === "inicio") onBack();
-    else if (tab === "publicar") { onBack(); setTimeout(() => window.dispatchEvent(new CustomEvent("openPublicar")), 50); }
+  // ── Búsqueda de texto libre ────────────────────────────────────────────
+  function handleBusquedaTexto(e) {
+    const val = e.target.value;
+    setTextoBusq(val);
+    setFiltro(val); // búsqueda en tiempo real mientras escribe
+    setShowDropdown(val.length === 0); // mostrar dropdown solo si está vacío
   }
 
+  function handleNav(tab) {
+    if (tab === "inicio") onBack();
+    else if (tab === "publicar") { onBack(); setTimeout(() => window.dispatchEvent(new CustomEvent("openPublicar")), 80); }
+  }
+
+  // Tipos filtrados según lo que escribe
+  const tiposFiltrados = TIPOS.filter(t =>
+    textoBusq ? t.toLowerCase().includes(textoBusq.toLowerCase()) : true
+  );
+
   return (
-    <div style={{ maxWidth: 430, margin: "0 auto", height: "100vh", background: "#f0f0f5", display: "flex", flexDirection: "column", fontFamily: "Outfit, sans-serif", position: "relative", overflow: "hidden" }}>
+    <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"#f0f0f5", display:"flex", flexDirection:"column", fontFamily:"Outfit, sans-serif", position:"relative", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-        @keyframes pulse {
-          0% { box-shadow: 0 0 0 0 rgba(30,42,74,0.4); }
-          70% { box-shadow: 0 0 0 10px rgba(30,42,74,0); }
-          100% { box-shadow: 0 0 0 0 rgba(30,42,74,0); }
-        }
+        @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(30,42,74,0.4)} 70%{box-shadow:0 0 0 10px rgba(30,42,74,0)} 100%{box-shadow:0 0 0 0 rgba(30,42,74,0)} }
+        .mapboxgl-ctrl-bottom-right { bottom: 90px !important; right: 12px !important; }
+        .mapboxgl-ctrl-attrib { display: none !important; }
       `}</style>
 
-      {/* ── Header ── */}
-      <div style={{ padding: "52px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10, background: "#f0f0f5" }}>
-        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height: 100, width: "auto", objectFit: "contain" }} />
-        <div style={{ textAlign: "right" }}>
-          <p style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>HOLA, {firstName}</p>
-          <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 1px 8px rgba(30,42,74,0.10)" }}>
+      {/* Header */}
+      <div style={{ padding:"52px 24px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", zIndex:10, flexShrink:0 }}>
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:100, width:"auto" }} />
+        <div style={{ textAlign:"right" }}>
+          <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>HOLA, {firstName}</p>
+          <div style={{ background:"white", borderRadius:50, padding:"6px 14px", display:"inline-flex", alignItems:"center", gap:6, boxShadow:"0 1px 8px rgba(30,42,74,0.10)" }}>
             <IconoDC />
-            <span style={{ fontWeight: 700, fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
+            <span style={{ fontWeight:700, fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{dc} DC</span>
           </div>
         </div>
       </div>
 
-      {/* ── Mapa full width con pills flotantes ── */}
-      <div style={{ flex: 1, position: "relative" }}>
-        {/* Pills flotantes sobre el mapa */}
-        <div style={{ position: "absolute", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 20, display: "flex", gap: 8 }}>
-          {[2, 5, 10].map((km) => (
+      {/* Mapa */}
+      <div style={{ flex:1, position:"relative" }}>
+        <div ref={mapContainer} style={{ width:"100%", height:"100%" }} />
+
+        {/* Pills KM */}
+        <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6 }}>
+          {[2,5,10].map((km) => (
             <button key={km} onClick={() => setRadio(km)} style={{
-              padding: "8px 20px", borderRadius: 50, border: "none", cursor: "pointer",
-              fontWeight: 700, fontSize: 13, fontFamily: "Outfit, sans-serif",
-              background: radio === km ? "#1e2a4a" : "white",
-              color: radio === km ? "white" : "#7b80a0",
-              boxShadow: "0 2px 8px rgba(30,42,74,0.12)",
+              padding:"6px 16px", borderRadius:50, border:"none", cursor:"pointer",
+              fontWeight:700, fontSize:12, fontFamily:"Outfit, sans-serif",
+              background: radio===km ? "#1e2a4a" : "white",
+              color: radio===km ? "white" : "#7b80a0",
+              boxShadow:"0 2px 8px rgba(30,42,74,0.12)",
             }}>
               {km} KM
             </button>
           ))}
         </div>
 
-        {/* Mapa */}
-        <div ref={mapContainer} style={{ width: "100%", height: "100%" }} />
+        {/* Buscador */}
+        <div style={{ position:"absolute", top:56, left:16, right:16, zIndex:20 }}>
+          <div style={{ background:"white", borderRadius:50, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, boxShadow:"0 2px 10px rgba(30,42,74,0.12)" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#b0b8d0" strokeWidth="1.8"/><path d="M16.5 16.5L21 21" stroke="#b0b8d0" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            <input
+              value={textoBusq}
+              onChange={handleBusquedaTexto}
+              onFocus={() => setShowDropdown(true)}
+              placeholder="Filtra por insumo"
+              style={{ border:"none", outline:"none", flex:1, fontSize:13, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", background:"transparent" }}
+            />
+            {(textoBusq || filtro) && (
+              <span onClick={() => { setTextoBusq(""); setFiltro(""); setShowDropdown(false); }}
+                style={{ fontSize:16, color:"#b0b8d0", cursor:"pointer", lineHeight:1 }}>✕</span>
+            )}
+          </div>
 
-        {/* Card de publicación seleccionada */}
+          {/* Dropdown */}
+          {showDropdown && tiposFiltrados.length > 0 && (
+            <div style={{ background:"white", borderRadius:16, marginTop:6, boxShadow:"0 4px 20px rgba(30,42,74,0.14)", overflow:"hidden" }}
+              onMouseDown={e => e.preventDefault()}>
+              {tiposFiltrados.map((tipo) => (
+                <div key={tipo}
+                  onClick={() => { setFiltro(tipo); setTextoBusq(tipo); setShowDropdown(false); }}
+                  style={{ padding:"13px 18px", fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", borderBottom:"1px solid #f0f0f5", cursor:"pointer", background: filtro===tipo ? "#f0f1f9" : "white", fontWeight: filtro===tipo ? 600 : 400 }}>
+                  {tipo}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Contador publicaciones visibles */}
+        {publicaciones.length > 0 && (
+          <div style={{ position:"absolute", bottom: selected ? 260 : 90, right:16, zIndex:20, background:"#1e2a4a", borderRadius:50, padding:"6px 12px" }}>
+            <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:"Outfit, sans-serif" }}>
+              {publicaciones.length} {publicaciones.length === 1 ? "insumo" : "insumos"}
+            </span>
+          </div>
+        )}
+
+        {/* Card publicación seleccionada */}
         {selected && (
-          <div style={{
-            position: "absolute", bottom: 90, left: 16, right: 16, zIndex: 20,
-            background: "white", borderRadius: 20, padding: "18px 20px",
-            boxShadow: "0 8px 32px rgba(30,42,74,0.18)",
-          }}>
-            <button onClick={() => setSelected(null)} style={{ position: "absolute", top: 14, right: 16, background: "transparent", border: "none", cursor: "pointer", fontSize: 18, color: "#b0b8d0" }}>✕</button>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: selected.tipo === "compartir" ? "#f0f1f9" : "#fff0f2",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3"
-                    stroke={selected.tipo === "compartir" ? "#7890D0" : "#EC6765"}
-                    strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+          <div style={{ position:"absolute", bottom:82, left:12, right:12, zIndex:20, background:"white", borderRadius:20, boxShadow:"0 8px 32px rgba(30,42,74,0.18)", overflow:"hidden" }}>
+            {selected.foto_url && (
+              <img src={selected.foto_url} alt="" style={{ width:"100%", height:130, objectFit:"cover" }} />
+            )}
+            <div style={{ padding:"14px 16px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:8 }}>
+                <div style={{ flex:1 }}>
+                  {userPos.current && (
+                    <p style={{ margin:"0 0 2px", fontSize:11, fontWeight:600, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>
+                      CERCANO · {distanciaKm(userPos.current.lat, userPos.current.lng, selected.latitud, selected.longitud).toFixed(1)} KM
+                    </p>
+                  )}
+                  <p style={{ margin:"0 0 2px", fontSize:16, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
+                  <p style={{ margin:0, fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif" }}>
+                    {selected.anonimo ? "Anónimo" : "Miembro RESCAT"}
+                    {selected.cantidad ? ` · ${selected.cantidad}` : ""}
+                    {selected.estado_producto ? ` · ${selected.estado_producto}` : ""}
+                  </p>
+                </div>
+                <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", fontSize:20, color:"#b0b8d0", lineHeight:1, padding:4, flexShrink:0 }}>✕</button>
               </div>
-              <div>
-                <span style={{ fontSize: 11, fontWeight: 600, color: selected.tipo === "compartir" ? "#7890D0" : "#EC6765", fontFamily: "Outfit, sans-serif" }}>
-                  {selected.tipo === "compartir" ? "Compartiendo" : "Solicitando"}
-                  {selected.urgente ? " · Urgente 🚨" : ""}
-                </span>
-                <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: 16, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
+              {selected.mensaje && (
+                <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4, fontStyle:"italic" }}>"{selected.mensaje}"</p>
+              )}
+              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                <button style={{ flex:1, padding:"12px", background:"white", color:"#1e2a4a", border:"1.5px solid #e0e2ec", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                  Reservar canje
+                </button>
+                <button style={{ width:46, height:46, borderRadius:"50%", background:"#fff0f2", border:"1.5px solid #ffd0d4", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" stroke="#EC6765" strokeWidth="1.8" strokeLinejoin="round"/></svg>
+                </button>
               </div>
             </div>
-            {selected.mensaje && (
-              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif", lineHeight: 1.4 }}>"{selected.mensaje}"</p>
-            )}
-            {selected.cantidad && (
-              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Cantidad: {selected.cantidad}</p>
-            )}
-            <button style={{
-              width: "100%", padding: "12px", background: "#1e2a4a", color: "white",
-              border: "none", borderRadius: 50, fontWeight: 700, fontSize: 14,
-              cursor: "pointer", fontFamily: "Outfit, sans-serif",
-            }}>
-              Contactar →
-            </button>
           </div>
         )}
       </div>
 
-      {/* ── BottomNav ── */}
-      <nav style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "white", borderRadius: "20px 20px 0 0", boxShadow: "0 -2px 20px rgba(30,42,74,0.08)", display: "flex", alignItems: "center", height: 72, zIndex: 30 }}>
+      {/* BottomNav */}
+      <nav style={{ position:"absolute", bottom:0, left:0, right:0, background:"white", borderRadius:"20px 20px 0 0", boxShadow:"0 -2px 20px rgba(30,42,74,0.08)", display:"flex", alignItems:"center", height:72, zIndex:30 }}>
         {[
-          { id: "inicio", label: "Inicio", Icon: IconInicio },
-          { id: "publicar", label: "Publicar", Icon: IconPublicar },
-          { id: "buscar", label: "Buscar", Icon: IconBuscar, active: true },
-          { id: "canjes", label: "Canjes", Icon: IconCanjes },
-          { id: "perfil", label: "Perfil", Icon: IconPerfil },
+          { id:"inicio",   label:"Inicio",   Icon:IconInicio  },
+          { id:"publicar", label:"Publicar", Icon:IconPublicar },
+          { id:"buscar",   label:"Buscar",   Icon:IconBuscar,  active:true },
+          { id:"canjes",   label:"Canjes",   Icon:IconCanjes  },
+          { id:"perfil",   label:"Perfil",   Icon:IconPerfil  },
         ].map(({ id, label, Icon, active }) => (
-          <button key={id} onClick={() => handleNavTab(id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "6px 4px" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 14, background: active ? "#1e2a4a" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <button key={id} onClick={() => handleNav(id)} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, border:"none", background:"transparent", cursor:"pointer", padding:"6px 4px" }}>
+            <div style={{ width:44, height:44, borderRadius:14, background:active?"#1e2a4a":"transparent", display:"flex", alignItems:"center", justifyContent:"center" }}>
               <Icon active={!!active} />
             </div>
-            <span style={{ fontSize: 10, fontWeight: active ? 700 : 400, color: active ? "#1e2a4a" : "#b0b8d0", fontFamily: "Outfit, sans-serif" }}>{label}</span>
+            <span style={{ fontSize:10, fontWeight:active?700:400, color:active?"#1e2a4a":"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>{label}</span>
           </button>
         ))}
       </nav>
