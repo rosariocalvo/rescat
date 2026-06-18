@@ -41,7 +41,8 @@ export default function MapScreen({ user, onBack }) {
   const [filtro,       setFiltro]       = useState("");
   const [textoBusq,    setTextoBusq]    = useState("");
   const [showDrop,     setShowDrop]     = useState(false);
-  const [tick,         setTick]         = useState(0); // fuerza recarga
+  const [tick,         setTick]         = useState(0);
+  const [userPos,      setUserPos]      = useState(null); // state reactivo para re-filtrar
 
   const nombre    = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
   const dc        = user?.user_metadata?.dc || 240;
@@ -60,6 +61,7 @@ export default function MapScreen({ user, onBack }) {
     navigator.geolocation?.getCurrentPosition((pos) => {
       const { latitude: lat, longitude: lng } = pos.coords;
       userLatLng.current = { lat, lng };
+      setUserPos({ lat, lng });
       map.current.flyTo({ center: [lng, lat], zoom: 14 });
       const el = document.createElement("div");
       el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;box-shadow:0 0 0 0 rgba(30,42,74,0.4);animation:pulse 2s infinite;";
@@ -75,15 +77,14 @@ export default function MapScreen({ user, onBack }) {
       if (filtro) q = q.ilike("nombre_insumo", "%" + filtro + "%");
       const { data, error } = await q;
       if (error || !data) return;
-      if (userLatLng.current) {
-        const { lat, lng } = userLatLng.current;
-        setPubs(data.filter(p => distKm(lat, lng, p.latitud, p.longitud) <= radio));
+      if (userPos) {
+        setPubs(data.filter(p => distKm(userPos.lat, userPos.lng, p.latitud, p.longitud) <= radio));
       } else {
         setPubs(data);
       }
     }
     cargar();
-  }, [radio, filtro, tick]);
+  }, [radio, filtro, tick, userPos]);
 
   // ── Realtime ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -114,8 +115,8 @@ export default function MapScreen({ user, onBack }) {
 
   function handleNav(tab) {
     if (tab === "buscar") return;
-    if (tab === "publicar") window.dispatchEvent(new CustomEvent("openPublicar"));
-    else onBack();
+    if (tab === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
+    onBack();
   }
 
   const tiposFiltrados = TIPOS.filter(t => textoBusq ? t.toLowerCase().includes(textoBusq.toLowerCase()) : true);
