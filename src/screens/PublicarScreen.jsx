@@ -223,7 +223,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
     onSuccess();
   }
 
-  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box" };
+  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box", WebkitAppearance: "none", MozAppearance: "none", appearance: "none" };
   const labelStyle = { fontSize: 12, fontWeight: 600, color: "#7b80a0", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
 
   return (
