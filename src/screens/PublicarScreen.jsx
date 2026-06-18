@@ -403,7 +403,7 @@ function FormAyudar({ user, onBack, onSuccess }) {
     setLoading(false); onSuccess();
   }
 
-  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box" };
+  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box", WebkitAppearance: "none", MozAppearance: "none", appearance: "none" };
   const labelStyle = { fontSize: 13, fontWeight: 600, color: "#1e2a4a", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
 
   return (
