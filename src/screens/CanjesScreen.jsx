@@ -277,9 +277,10 @@ export default function CanjesScreen({ user, onBack }) {
 
         {/* Lista */}
         {canjes.length === 0 ? (
-          <div style={{ textAlign:"center", paddingTop:60 }}>
-            <p style={{ fontSize:48, marginBottom:12 }}>📭</p>
-            <p style={{ color:"#b0b8d0", fontSize:14 }}>{tab === "activos" ? "No tienes canjes activos" : "Sin historial aún"}</p>
+          <div style={{ paddingTop:60 }}>
+            <p style={{ color:"#b0b8d0", fontSize:14, fontFamily:"Outfit, sans-serif" }}>
+              {tab === "activos" ? "No tienes canjes activos aún." : "Sin historial aún."}
+            </p>
           </div>
         ) : (
           <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -320,18 +321,23 @@ export default function CanjesScreen({ user, onBack }) {
 
                 {/* Botones acción */}
                 {tab === "activos" && (
-                  <div style={{ display:"flex", gap:10 }}>
+                  <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                     <button
                       onClick={() => setChatAbierto({ pub, otroId: pub.user_id === user.id ? null : pub.user_id, otroNombre: pub.anonimo ? "Anónimo" : "Miembro RESCAT" })}
                       style={{ flex:1, padding:"10px", background:"#f0f1f9", border:"none", borderRadius:50, fontWeight:600, fontSize:13, color:"#7890D0", cursor:"pointer", fontFamily:"Outfit, sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#7890D0" strokeWidth="1.8" strokeLinejoin="round"/></svg>
-                      Abrir chat
+                      Chat
                     </button>
-                    {pub.user_id !== user.id && (
+                    {pub.user_id === user.id && (
                       <button
-                        onClick={() => window.open(`/publicacion/${pub.id}`)}
-                        style={{ flex:1, padding:"10px", background:"white", border:"1.5px solid #e0e2ec", borderRadius:50, fontWeight:600, fontSize:13, color:"#1e2a4a", cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-                        Ver publicación
+                        onClick={async () => {
+                          if (confirm("¿Cancelar esta publicación?")) {
+                            await supabase.from("publicaciones").update({ estado: "cancelada" }).eq("id", pub.id);
+                            cargar();
+                          }
+                        }}
+                        style={{ flex:1, padding:"10px", background:"#fff0f2", border:"1.5px solid #ffd0d4", borderRadius:50, fontWeight:600, fontSize:13, color:"#EC6765", cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                        Cancelar
                       </button>
                     )}
                   </div>
