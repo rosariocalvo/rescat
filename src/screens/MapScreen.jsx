@@ -52,12 +52,12 @@ export default function MapScreen({ user, onBack }) {
     if (userPos && p.latitud && p.longitud) {
       return distKm(userPos.lat, userPos.lng, p.latitud, p.longitud) <= radio;
     }
-    return true; // sin GPS, mostrar todo
+    return true; // sin coordenadas o sin GPS: mostrar siempre
   });
 
   // ── Cargar TODAS las publicaciones activas ─────────────────────────────
   useEffect(() => {
-    supabase.from("publicaciones").select("*").eq("estado","activa").not("latitud","is",null)
+    supabase.from("publicaciones").select("*").eq("estado","activa")
       .then(({ data }) => { if (data) setTodasPubs(data); });
   }, []);
 
@@ -65,7 +65,7 @@ export default function MapScreen({ user, onBack }) {
   useEffect(() => {
     const ch = supabase.channel("mapa-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "publicaciones" }, () => {
-        supabase.from("publicaciones").select("*").eq("estado","activa").not("latitud","is",null)
+        supabase.from("publicaciones").select("*").eq("estado","activa")
           .then(({ data }) => { if (data) setTodasPubs(data); });
       })
       .subscribe();
@@ -97,7 +97,9 @@ export default function MapScreen({ user, onBack }) {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
     pubs.forEach(pub => {
-      if (!pub.latitud || !pub.longitud) return;
+      const lat = pub.latitud || -33.4489;
+      const lng = pub.longitud || -70.6693;
+      if (!pub.latitud) return; // sin coordenadas no mostrar en mapa
       const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
       const el = document.createElement("div");
       el.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;`;
@@ -212,7 +214,7 @@ export default function MapScreen({ user, onBack }) {
               </div>
               {selected.mensaje && <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4, fontStyle:"italic" }}>"{selected.mensaje}"</p>}
               <div style={{ display:"flex", gap:10 }}>
-                <button style={{ flex:1, padding:"12px", background:"white", color:"#1e2a4a", border:"1.5px solid #e0e2ec", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                <button onClick={() => window.dispatchEvent(new CustomEvent("openCanjes"))} style={{ flex:1, padding:"12px", background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
                   Reservar canje
                 </button>
                 <button style={{ width:46, height:46, borderRadius:"50%", background:"#fff0f2", border:"1.5px solid #ffd0d4", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0 }}>
