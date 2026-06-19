@@ -215,9 +215,9 @@ export default function MapScreen({ user, onBack }) {
               map.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 600 });
             });
           }
-        }} style={{ position:"absolute", bottom:100, left:16, zIndex:20, width:52, height:52, borderRadius:"50%", background:"white", border:"2.5px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 12px rgba(30,42,74,0.15)" }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2L4.5 20.5L12 17L19.5 20.5L12 2Z" fill="#1e2a4a"/>
+        }} style={{ position:"absolute", bottom:100, left:16, zIndex:20, width:58, height:58, borderRadius:"50%", background:"white", border:"3.5px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 16px rgba(30,42,74,0.18)" }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#1e2a4a"/>
           </svg>
         </button>
 
