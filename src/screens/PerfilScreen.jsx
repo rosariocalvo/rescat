@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "../supabase";
 
 const IconoDC = () => (
@@ -44,15 +44,14 @@ function BilleteraScreen({ user, dc, onBack }) {
   const [movimientos, setMovimientos] = useState([]);
 
   useEffect(() => {
-    // Cargar publicaciones completadas para simular movimientos
     supabase.from("publicaciones").select("*")
       .eq("user_id", user.id).eq("estado", "completada")
-      .order("created_at", { ascending: false }).limit(10)
+      .order("created_at", { ascending:false }).limit(10)
       .then(({ data }) => { if (data) setMovimientos(data); });
   }, []);
 
-  const ganados = movimientos.filter(p => p.tipo === "compartir").reduce((a, p) => a + 50, 0);
-  const usados  = movimientos.filter(p => p.tipo === "solicitar").reduce((a, p) => a + 50, 0);
+  const ganados = movimientos.filter(p => p.tipo==="compartir").length * 50;
+  const usados  = movimientos.filter(p => p.tipo==="solicitar").length * 50;
 
   function formatFecha(iso) {
     if (!iso) return "";
@@ -64,22 +63,18 @@ function BilleteraScreen({ user, dc, onBack }) {
 
   return (
     <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
-
-      {/* Header */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');`}</style>
       <div style={{ padding:"52px 24px 20px", display:"flex", alignItems:"center", gap:14 }}>
         <button onClick={onBack} style={{ background:"white", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.08)" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:"#1e2a4a" }}>Billetera Virtual</h2>
       </div>
-
       <div style={{ padding:"0 24px" }}>
-        {/* Card saldo */}
-        <div style={{ background:"white", borderRadius:20, padding:24, marginBottom:16, border:"1.5px solid #e8eaf0" }}>
+        <div style={{ background:"white", borderRadius:20, padding:24, marginBottom:16 }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
             <div>
-              <p style={{ margin:"0 0 4px", fontSize:12, color:"#7b80a0", fontWeight:600 }}>DiabetCoin</p>
+              <p style={{ margin:"0 0 4px", fontSize:12, color:"#7890D0", fontWeight:600 }}>DiabetCoin</p>
               <p style={{ margin:"0 0 4px", fontSize:36, fontWeight:800, color:"#1e2a4a" }}>{dc} DC</p>
               <p style={{ margin:0, fontSize:13, color:"#7b80a0" }}>Saldo disponible</p>
             </div>
@@ -88,55 +83,42 @@ function BilleteraScreen({ user, dc, onBack }) {
             </div>
           </div>
         </div>
-
-        {/* Ganados / Usados */}
         <div style={{ display:"flex", gap:12, marginBottom:16 }}>
-          <div style={{ flex:1, background:"white", borderRadius:16, padding:16, textAlign:"center" }}>
-            <p style={{ margin:"0 0 4px", fontSize:11, color:"#7b80a0" }}>Ganados este mes</p>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", background:"#e8f5e9", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          {[{label:"Ganados este mes", val:`+${ganados} DC`, color:"#22c55e", bg:"#e8f5e9", up:true},
+            {label:"Usados este mes", val:`-${usados} DC`, color:"#EC6765", bg:"#fff0f2", up:false}].map((s,i) => (
+            <div key={i} style={{ flex:1, background:"white", borderRadius:16, padding:16, textAlign:"center" }}>
+              <p style={{ margin:"0 0 8px", fontSize:11, color:"#7b80a0" }}>{s.label}</p>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+                <div style={{ width:28, height:28, borderRadius:"50%", background:s.bg, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    {s.up ? <path d="M12 19V5M5 12l7-7 7 7" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          : <path d="M12 5v14M5 12l7 7 7-7" stroke={s.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>}
+                  </svg>
+                </div>
+                <span style={{ fontSize:18, fontWeight:800, color:s.color }}>{s.val}</span>
               </div>
-              <span style={{ fontSize:20, fontWeight:800, color:"#22c55e" }}>+{ganados} DC</span>
             </div>
-          </div>
-          <div style={{ flex:1, background:"white", borderRadius:16, padding:16, textAlign:"center" }}>
-            <p style={{ margin:"0 0 4px", fontSize:11, color:"#7b80a0" }}>Usados este mes</p>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <div style={{ width:28, height:28, borderRadius:"50%", background:"#fff0f2", display:"flex", alignItems:"center", justifyContent:"center" }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12l7 7 7-7" stroke="#EC6765" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </div>
-              <span style={{ fontSize:20, fontWeight:800, color:"#EC6765" }}>-{usados} DC</span>
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Info */}
-        <div style={{ background:"#f0f1f9", borderRadius:16, padding:"14px 16px", marginBottom:24, display:"flex", gap:12, alignItems:"flex-start" }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, marginTop:2 }}><circle cx="12" cy="12" r="9.5" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 8v4M12 16h.01" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+        <div style={{ background:"#f0f1f9", borderRadius:16, padding:"14px 16px", marginBottom:24, display:"flex", gap:12 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0 }}><circle cx="12" cy="12" r="9.5" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 8v4M12 16h.01" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
           <p style={{ margin:0, fontSize:13, color:"#7b80a0", lineHeight:1.5 }}>Los DiabetCoins se obtienen al compartir insumos y pueden usarse para reservar canjes dentro de la comunidad.</p>
         </div>
-
-        {/* Movimientos */}
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
           <h3 style={{ margin:0, fontSize:16, fontWeight:700, color:"#1e2a4a" }}>Movimientos</h3>
-          <span style={{ fontSize:13, color:"#7b80a0" }}>Ver todos</span>
         </div>
-
         {movimientos.length === 0 ? (
           <p style={{ color:"#b0b8d0", fontSize:13 }}>Sin movimientos aún.</p>
         ) : (
-          <div style={{ display:"flex", flexDirection:"column", gap:10, marginBottom:24 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {movimientos.map((p) => {
-              const esGanado = p.tipo === "compartir";
+              const esGanado = p.tipo==="compartir";
               return (
                 <div key={p.id} style={{ background:"white", borderRadius:16, padding:"14px 16px", display:"flex", alignItems:"center", gap:12 }}>
                   <div style={{ width:36, height:36, borderRadius:"50%", background:esGanado?"#e8f5e9":"#fff0f2", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                      {esGanado
-                        ? <path d="M12 19V5M5 12l7-7 7 7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        : <path d="M12 5v14M5 12l7 7 7-7" stroke="#EC6765" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      }
+                      {esGanado ? <path d="M12 19V5M5 12l7-7 7 7" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                : <path d="M12 5v14M5 12l7 7 7-7" stroke="#EC6765" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>}
                     </svg>
                   </div>
                   <div style={{ flex:1 }}>
@@ -144,24 +126,93 @@ function BilleteraScreen({ user, dc, onBack }) {
                     <p style={{ margin:"0 0 1px", fontSize:12, color:"#1e2a4a" }}>{esGanado?"Canje completado":"Reserva realizada"}</p>
                     <p style={{ margin:0, fontSize:11, color:"#7890D0" }}>{p.nombre_insumo}</p>
                   </div>
-                  <span style={{ fontSize:11, color:"#b0b8d0", textAlign:"right" }}>{formatFecha(p.created_at)}</span>
+                  <span style={{ fontSize:11, color:"#b0b8d0" }}>{formatFecha(p.created_at)}</span>
                 </div>
               );
             })}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
 
-        {/* Dudas */}
-        <div style={{ background:"white", borderRadius:16, padding:"14px 16px", display:"flex", alignItems:"center", gap:12, cursor:"pointer" }}>
-          <div style={{ width:40, height:40, borderRadius:"50%", background:"#f0f1f9", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9.5" stroke="#7890D0" strokeWidth="1.5"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+// ── Editar Perfil ─────────────────────────────────────────────────────────
+function EditarPerfilScreen({ user, onBack, onSaved }) {
+  const nombre = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "";
+  const [form, setForm] = useState({ nombre, rut: user?.user_metadata?.rut || "" });
+  const [loading, setLoading] = useState(false);
+  const [fotoUrl, setFotoUrl] = useState(user?.user_metadata?.foto_url || null);
+  const [fotoPreview, setFotoPreview] = useState(user?.user_metadata?.foto_url || null);
+  const fileRef = useRef(null);
+
+  async function handleFoto(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => setFotoPreview(ev.target.result);
+    reader.readAsDataURL(file);
+    // Subir a Supabase Storage
+    const ext = file.name.split(".").pop();
+    const path = `avatars/${user.id}.${ext}`;
+    const { data } = await supabase.storage.from("fotos").upload(path, file, { upsert:true });
+    if (data) {
+      const { data: urlData } = supabase.storage.from("fotos").getPublicUrl(path);
+      setFotoUrl(urlData?.publicUrl || null);
+    }
+  }
+
+  async function guardar() {
+    setLoading(true);
+    await supabase.auth.updateUser({
+      data: { nombre: form.nombre, nombre_completo: form.nombre, rut: form.rut, foto_url: fotoUrl }
+    });
+    setLoading(false);
+    onSaved();
+  }
+
+  const inputStyle = { width:"100%", padding:"14px 16px", borderRadius:14, border:"1.5px solid #e0e2ec", background:"white", fontSize:14, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", outline:"none", boxSizing:"border-box" };
+  const labelStyle = { fontSize:12, fontWeight:600, color:"#7b80a0", marginBottom:6, display:"block", fontFamily:"Outfit, sans-serif" };
+
+  return (
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:40 }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
+      <div style={{ padding:"52px 24px 24px", display:"flex", alignItems:"center", gap:14 }}>
+        <button onClick={onBack} style={{ background:"white", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.08)" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+        </button>
+        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:"#1e2a4a" }}>Editar perfil</h2>
+      </div>
+      <div style={{ padding:"0 24px" }}>
+        {/* Foto */}
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:28 }}>
+          <input type="file" accept="image/*" ref={fileRef} style={{ display:"none" }} onChange={handleFoto} />
+          <div onClick={() => fileRef.current?.click()} style={{ position:"relative", cursor:"pointer" }}>
+            {fotoPreview ? (
+              <img src={fotoPreview} alt="" style={{ width:90, height:90, borderRadius:"50%", objectFit:"cover", border:"3px solid white", boxShadow:"0 2px 12px rgba(30,42,74,0.12)" }} />
+            ) : (
+              <div style={{ width:90, height:90, borderRadius:"50%", background:"#e8eaf0", display:"flex", alignItems:"center", justifyContent:"center", border:"3px solid white", boxShadow:"0 2px 12px rgba(30,42,74,0.12)" }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="#7b80a0" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7b80a0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </div>
+            )}
+            <div style={{ position:"absolute", bottom:0, right:0, width:28, height:28, borderRadius:"50%", background:"#1e2a4a", display:"flex", alignItems:"center", justifyContent:"center", border:"2px solid white" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="white" strokeWidth="1.5"/><circle cx="12" cy="13" r="4" stroke="white" strokeWidth="1.5"/></svg>
+            </div>
           </div>
-          <div style={{ flex:1 }}>
-            <p style={{ margin:"0 0 2px", fontSize:14, fontWeight:600, color:"#1e2a4a" }}>¿Dudas sobre DiabetCoins?</p>
-            <p style={{ margin:0, fontSize:12, color:"#7890D0" }}>Ver preguntas frecuentes</p>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#b0b8d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          <p style={{ margin:"10px 0 0", fontSize:13, color:"#7890D0", fontWeight:600, cursor:"pointer" }} onClick={() => fileRef.current?.click()}>Cambiar foto</p>
         </div>
+
+        <div style={{ marginBottom:16 }}>
+          <label style={labelStyle}>Nombre completo</label>
+          <input style={inputStyle} value={form.nombre} onChange={e => setForm({...form, nombre:e.target.value})} placeholder="Tu nombre" />
+        </div>
+        <div style={{ marginBottom:28 }}>
+          <label style={labelStyle}>RUT</label>
+          <input style={inputStyle} value={form.rut} onChange={e => setForm({...form, rut:e.target.value})} placeholder="12.345.678-9" />
+        </div>
+        <button onClick={guardar} disabled={loading} style={{ width:"100%", padding:16, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:15, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+          {loading ? "Guardando..." : "Guardar cambios"}
+        </button>
       </div>
     </div>
   );
@@ -169,39 +220,45 @@ function BilleteraScreen({ user, dc, onBack }) {
 
 // ── Perfil principal ──────────────────────────────────────────────────────
 export default function PerfilScreen({ user, onSignOut, onBack }) {
-  const [verBilletera, setVerBilletera] = useState(false);
+  const [subscreen, setSubscreen] = useState("perfil"); // perfil | billetera | editar
   const [stats, setStats] = useState({ publicaciones:0, canjes:0 });
+  const [userData, setUserData] = useState(user);
 
-  const nombre = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
-  const email = user?.email || "";
-  const dc = user?.user_metadata?.dc || 240;
-  const rut = user?.user_metadata?.rut || "";
-  const desde = user?.created_at ? new Date(user.created_at).getFullYear() : 2026;
+  const nombre = userData?.user_metadata?.nombre_completo || userData?.user_metadata?.nombre || "Usuario";
+  const email  = userData?.email || "";
+  const dc     = userData?.user_metadata?.dc || 240;
+  const rut    = userData?.user_metadata?.rut || "";
+  const foto   = userData?.user_metadata?.foto_url || null;
+  const desde  = userData?.created_at ? new Date(userData.created_at).getFullYear() : 2026;
 
   useEffect(() => {
     supabase.from("publicaciones").select("id, estado").eq("user_id", user.id)
       .then(({ data }) => {
-        if (data) setStats({
-          publicaciones: data.length,
-          canjes: data.filter(p => p.estado === "completada").length,
-        });
+        if (data) setStats({ publicaciones:data.length, canjes:data.filter(p=>p.estado==="completada").length });
       });
   }, []);
 
-  if (verBilletera) return <BilleteraScreen user={user} dc={dc} onBack={() => setVerBilletera(false)} />;
+  async function recargarUsuario() {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) setUserData(data.user);
+    setSubscreen("perfil");
+  }
 
-  const opcionesMenu = [
-    { icon: "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z", label:"Editar perfil" },
-    { icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", label:"Privacidad" },
-    { icon: "M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0", label:"Notificaciones" },
-    { icon: "M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01", label:"Ayuda" },
-  ];
+  function navegar(t) {
+    if (t === "perfil") return;
+    if (t === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
+    if (t === "buscar")   { window.dispatchEvent(new CustomEvent("openMapa"));     return; }
+    if (t === "canjes")   { window.dispatchEvent(new CustomEvent("openCanjes"));   return; }
+    onBack();
+  }
+
+  if (subscreen === "billetera") return <BilleteraScreen user={user} dc={dc} onBack={() => setSubscreen("perfil")} />;
+  if (subscreen === "editar") return <EditarPerfilScreen user={userData} onBack={() => setSubscreen("perfil")} onSaved={recargarUsuario} />;
 
   return (
     <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');`}</style>
 
-      {/* Header */}
       <div style={{ padding:"52px 24px 0" }}>
         <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:100, width:"auto" }} />
       </div>
@@ -212,8 +269,17 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
         {/* Card usuario */}
         <div style={{ background:"white", borderRadius:20, padding:20, marginBottom:16, boxShadow:"0 1px 8px rgba(30,42,74,0.06)" }}>
           <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:16 }}>
-            <div style={{ width:60, height:60, borderRadius:"50%", background:"#e8eaf0", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="#7b80a0" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7b80a0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            <div onClick={() => setSubscreen("editar")} style={{ position:"relative", cursor:"pointer", flexShrink:0 }}>
+              {foto ? (
+                <img src={foto} alt="" style={{ width:64, height:64, borderRadius:"50%", objectFit:"cover" }} />
+              ) : (
+                <div style={{ width:64, height:64, borderRadius:"50%", background:"#e8eaf0", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="#7b80a0" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#7b80a0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                </div>
+              )}
+              <div style={{ position:"absolute", bottom:0, right:0, width:22, height:22, borderRadius:"50%", background:"#1e2a4a", display:"flex", alignItems:"center", justifyContent:"center", border:"2px solid white" }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="white" strokeWidth="2"/><circle cx="12" cy="13" r="4" stroke="white" strokeWidth="2"/></svg>
+              </div>
             </div>
             <div>
               <div style={{ display:"flex", alignItems:"center", gap:6 }}>
@@ -223,9 +289,8 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
               <p style={{ margin:0, fontSize:12, color:"#7b80a0" }}>Miembro Verificado</p>
             </div>
           </div>
-          {/* Estrellas + canjes */}
           <div style={{ background:"#f5f6fc", borderRadius:14, padding:"12px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:4 }}>
               {[1,2,3,4,5].map(i => (
                 <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill={i<=4?"#f59e0b":"none"}>
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" strokeWidth="1.5"/>
@@ -233,11 +298,7 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
               ))}
               <span style={{ fontSize:13, fontWeight:700, color:"#1e2a4a", marginLeft:4 }}>4.7</span>
             </div>
-            <div style={{ display:"flex", alignItems:"center", gap:6, color:"#7b80a0" }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3" stroke="#7b80a0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ fontSize:13, fontWeight:600, color:"#1e2a4a" }}>{stats.canjes}</span>
-              <span style={{ fontSize:12, color:"#7b80a0" }}>intercambios completados</span>
-            </div>
+            <span style={{ fontSize:12, color:"#7b80a0" }}>{stats.canjes} intercambios</span>
           </div>
         </div>
 
@@ -252,9 +313,8 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
               <p style={{ margin:"0 0 2px", fontSize:26, fontWeight:800, color:"#1e2a4a" }}>{dc} DC</p>
               <p style={{ margin:0, fontSize:12, color:"#7b80a0" }}>Saldo disponible</p>
             </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#b0b8d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </div>
-          <button onClick={() => setVerBilletera(true)} style={{ width:"100%", padding:"12px", background:"#f0f1f9", border:"none", borderRadius:50, fontWeight:600, fontSize:14, color:"#7890D0", cursor:"pointer", fontFamily:"Outfit, sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+          <button onClick={() => setSubscreen("billetera")} style={{ width:"100%", padding:"12px", background:"#f0f1f9", border:"none", borderRadius:50, fontWeight:600, fontSize:14, color:"#7890D0", cursor:"pointer", fontFamily:"Outfit, sans-serif", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#7890D0" strokeWidth="1.5"/><path d="M2 10h20" stroke="#7890D0" strokeWidth="1.5"/></svg>
             Ver billetera
           </button>
@@ -262,54 +322,46 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
 
         {/* Stats */}
         <div style={{ background:"white", borderRadius:20, padding:20, marginBottom:16, boxShadow:"0 1px 8px rgba(30,42,74,0.06)" }}>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:0 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr" }}>
             {[
-              { icon:"M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z", val:stats.publicaciones, label:"Publicaciones" },
-              { icon:"M4 9h13M4 9l3-3M4 9l3 3M20 15H7M20 15l-3-3M20 15l-3 3", val:stats.canjes, label:"Canjes" },
-              { icon:"M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10zM12 6v6l4 2", val:"95%", label:"Tasa resp." },
-            ].map((s, i) => (
-              <div key={i} style={{ textAlign:"center", padding:"8px 4px", borderRight: i<2?"1px solid #f0f0f5":"none" }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ marginBottom:4 }}>
-                  <path d={s.icon} stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                <p style={{ margin:"0 0 2px", fontSize:18, fontWeight:800, color:"#1e2a4a" }}>{s.val}</p>
+              { val:stats.publicaciones, label:"Publicaciones" },
+              { val:stats.canjes, label:"Canjes" },
+              { val:"—", label:"Tasa resp." },
+            ].map((s,i) => (
+              <div key={i} style={{ textAlign:"center", padding:"8px 4px", borderRight:i<2?"1px solid #f0f0f5":"none" }}>
+                <p style={{ margin:"0 0 4px", fontSize:22, fontWeight:800, color:"#1e2a4a" }}>{s.val}</p>
                 <p style={{ margin:0, fontSize:11, color:"#7b80a0" }}>{s.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Menú opciones */}
+        {/* Menú */}
         <div style={{ background:"white", borderRadius:20, overflow:"hidden", boxShadow:"0 1px 8px rgba(30,42,74,0.06)", marginBottom:16 }}>
-          {opcionesMenu.map((op, i) => (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", borderBottom: i<opcionesMenu.length-1?"1px solid #f5f6fc":"none", cursor:"pointer" }}>
+          {[
+            { label:"Editar perfil", color:"#1e2a4a", action:() => setSubscreen("editar"), icon:"M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" },
+            { label:"Privacidad", color:"#1e2a4a", action:() => alert("Próximamente"), icon:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" },
+            { label:"Notificaciones", color:"#1e2a4a", action:() => alert("Próximamente"), icon:"M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" },
+            { label:"Ayuda", color:"#1e2a4a", action:() => alert("Próximamente"), icon:"M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01" },
+          ].map((op, i) => (
+            <button key={i} onClick={op.action} style={{ width:"100%", display:"flex", alignItems:"center", gap:14, padding:"16px 20px", borderBottom:"1px solid #f5f6fc", cursor:"pointer", background:"transparent", border:"none", borderBottom:"1px solid #f5f6fc", textAlign:"left" }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d={op.icon} stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ flex:1, fontSize:14, fontWeight:500, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{op.label}</span>
+              <span style={{ flex:1, fontSize:14, fontWeight:500, color:op.color, fontFamily:"Outfit, sans-serif" }}>{op.label}</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 18l6-6-6-6" stroke="#b0b8d0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </div>
+            </button>
           ))}
-          <div onClick={onSignOut} style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 20px", cursor:"pointer" }}>
+          <button onClick={onSignOut} style={{ width:"100%", display:"flex", alignItems:"center", gap:14, padding:"16px 20px", cursor:"pointer", background:"transparent", border:"none", textAlign:"left" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" stroke="#EC6765" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span style={{ flex:1, fontSize:14, fontWeight:600, color:"#EC6765", fontFamily:"Outfit, sans-serif" }}>Cerrar sesión</span>
-          </div>
+          </button>
         </div>
 
-        {/* Miembro desde */}
-        <div style={{ textAlign:"center", padding:"8px 0 8px" }}>
-          <div style={{ display:"inline-flex", alignItems:"center", gap:6 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="#b0b8d0" strokeWidth="1.5" strokeLinecap="round"/><path d="M22 4L12 14.01l-3-3" stroke="#b0b8d0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize:12, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>Miembro desde {desde}</span>
-          </div>
+        <div style={{ textAlign:"center", padding:"8px 0 16px" }}>
+          <span style={{ fontSize:12, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>✓ Miembro desde {desde}</span>
         </div>
       </div>
 
-      <BottomNav onNav={(t) => {
-        if (t === "perfil") return;
-        if (t === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
-        if (t === "buscar") { window.dispatchEvent(new CustomEvent("openMapa")); return; }
-        if (t === "canjes") { window.dispatchEvent(new CustomEvent("openCanjes")); return; }
-        onBack();
-      }} />
+      <BottomNav onNav={navegar} />
     </div>
   );
 }
