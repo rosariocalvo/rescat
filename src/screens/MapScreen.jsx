@@ -47,12 +47,13 @@ export default function MapScreen({ user, onBack }) {
   const firstName = nombre.split(" ")[0].toUpperCase();
 
   // Publicaciones filtradas — se recalcula cuando cambia radio, filtro o userPos
+  const centro = userPos || { lat: -33.4569, lng: -70.6483 };
   const pubs = todasPubs.filter(p => {
     if (filtro && !p.nombre_insumo?.toLowerCase().includes(filtro.toLowerCase())) return false;
-    if (userPos && p.latitud && p.longitud) {
-      return distKm(userPos.lat, userPos.lng, p.latitud, p.longitud) <= radio;
+    if (p.latitud && p.longitud) {
+      return distKm(centro.lat, centro.lng, p.latitud, p.longitud) <= radio;
     }
-    return true; // sin coordenadas o sin GPS: mostrar siempre
+    return true; // sin coordenadas: mostrar siempre
   });
 
   // ── Cargar TODAS las publicaciones activas ─────────────────────────────
