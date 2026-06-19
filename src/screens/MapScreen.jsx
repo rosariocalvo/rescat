@@ -121,7 +121,7 @@ export default function MapScreen({ user, onBack }) {
     });
   }
 
-
+  function handleNav(tab) {
     if (tab === "buscar") return;
     if (tab === "publicar") { window.dispatchEvent(new CustomEvent("openPublicar")); return; }
     if (tab === "canjes")   { window.dispatchEvent(new CustomEvent("openCanjes"));   return; }
