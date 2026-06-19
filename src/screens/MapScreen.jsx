@@ -215,12 +215,10 @@ export default function MapScreen({ user, onBack }) {
               map.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 600 });
             });
           }
-        }} style={{ position:"absolute", bottom:100, left:16, zIndex:20, width:56, height:56, borderRadius:"50%", background:"white", border:"3px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 12px rgba(30,42,74,0.15)" }}>
-          <div style={{ width:36, height:36, borderRadius:"50%", border:"2px solid #1e2a4a", display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 2L4.5 20.5L12 17L19.5 20.5L12 2Z" fill="#1e2a4a"/>
-            </svg>
-          </div>
+        }} style={{ position:"absolute", bottom:100, left:16, zIndex:20, width:52, height:52, borderRadius:"50%", background:"white", border:"2.5px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 12px rgba(30,42,74,0.15)" }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L4.5 20.5L12 17L19.5 20.5L12 2Z" fill="#1e2a4a"/>
+          </svg>
         </button>
 
         {/* Contador */}
