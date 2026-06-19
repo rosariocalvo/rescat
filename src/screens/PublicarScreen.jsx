@@ -216,8 +216,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
       latitud: lat,
       longitud: lng,
       estado: "activa",
-      mensaje: estado,
-      foto_url: fotoUrl,
+      foto_url: fotoUrl || null,
     });
     setLoading(false);
     onSuccess();
@@ -395,10 +394,20 @@ function FormAyudar({ user, onBack, onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault(); setLoading(true);
     let lat = null, lng = null;
-    try { const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej)); lat = pos.coords.latitude; lng = pos.coords.longitude; } catch {}
+    try {
+      const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000}));
+      lat = pos.coords.latitude; lng = pos.coords.longitude;
+    } catch {}
     await supabase.from("publicaciones").insert({
-      user_id: user.id, tipo: "solicitar", nombre_insumo: nombreFinal,
-      urgente, anonimo, mensaje, latitud: lat, longitud: lng, estado: "activa",
+      user_id: user.id,
+      tipo: "solicitar",
+      nombre_insumo: nombreFinal,
+      urgente: urgente,
+      anonimo: anonimo,
+      mensaje: mensaje,
+      latitud: lat,
+      longitud: lng,
+      estado: "activa",
     });
     setLoading(false); onSuccess();
   }
