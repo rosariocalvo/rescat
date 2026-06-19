@@ -110,7 +110,7 @@ export default function MapScreen({ user, onBack }) {
       });
       markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([pub.longitud, pub.latitud]).addTo(map.current));
     });
-  }, [pubs]);
+  }, [pubs, radio, todasPubs, filtro]);
 
   const [liked, setLiked] = useState(new Set());
 
@@ -159,7 +159,12 @@ export default function MapScreen({ user, onBack }) {
         {/* Pills KM */}
         <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6 }}>
           {[2,5,10].map(km => (
-            <button key={km} onClick={() => setRadio(km)} style={{
+            <button key={km} onClick={() => {
+              setRadio(km);
+              const zoomMap = { 2: 14, 5: 12.5, 10: 11 };
+              const center = userPos ? [userPos.lng, userPos.lat] : [-70.6483, -33.4569];
+              map.current?.flyTo({ center, zoom: zoomMap[km], duration: 600 });
+            }} style={{
               padding:"7px 18px", borderRadius:50, border:"none", cursor:"pointer",
               fontWeight:700, fontSize:12, fontFamily:"Outfit, sans-serif",
               background: radio===km ? "#1e2a4a" : "white",
