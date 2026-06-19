@@ -29,19 +29,20 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const openMapa = () => setScreen("mapa");
-    const openPublicar = () => setScreen("publicar");
-    const openCanjes = () => setScreen("canjes");
-    const openPerfil = () => setScreen("perfil");
-    window.addEventListener("openMapa", openMapa);
-    window.addEventListener("openPublicar", openPublicar);
-    window.addEventListener("openCanjes", openCanjes);
-    window.addEventListener("openPerfil", openPerfil);
+    const go = (s) => () => setScreen(s);
+    const goMapa    = go("mapa");
+    const goPublicar= go("publicar");
+    const goCanjes  = go("canjes");
+    const goPerfil  = go("perfil");
+    window.addEventListener("openMapa",     goMapa);
+    window.addEventListener("openPublicar", goPublicar);
+    window.addEventListener("openCanjes",   goCanjes);
+    window.addEventListener("openPerfil",   goPerfil);
     return () => {
-      window.removeEventListener("openMapa", openMapa);
-      window.removeEventListener("openPublicar", openPublicar);
-      window.removeEventListener("openCanjes", openCanjes);
-      window.removeEventListener("openPerfil", openPerfil);
+      window.removeEventListener("openMapa",     goMapa);
+      window.removeEventListener("openPublicar", goPublicar);
+      window.removeEventListener("openCanjes",   goCanjes);
+      window.removeEventListener("openPerfil",   goPerfil);
     };
   }, []);
 
@@ -53,23 +54,17 @@ export default function App() {
   if (checkingSession) return null;
 
   if (session) {
-    if (screen === "mapa") return <MapScreen user={session.user} onBack={() => setScreen("home")} />;
+    if (screen === "mapa")     return <MapScreen     user={session.user} onBack={() => setScreen("home")} />;
     if (screen === "publicar") return <PublicarScreen user={session.user} onBack={() => setScreen("home")} />;
-    if (screen === "canjes") return <CanjesScreen user={session.user} onBack={() => setScreen("home")} />;
-    if (screen === "perfil") return <PerfilScreen user={session.user} onSignOut={handleSignOut} onBack={() => setScreen("home")} />;
+    if (screen === "canjes")   return <CanjesScreen   user={session.user} onBack={() => setScreen("home")} />;
+    if (screen === "perfil")   return <PerfilScreen   user={session.user} onSignOut={handleSignOut} onBack={() => setScreen("home")} />;
     return <Home user={session.user} onSignOut={handleSignOut} />;
   }
 
-  if (screen === "splash") return <Splash onDone={() => setScreen("onboarding")} />;
-  if (screen === "onboarding") return <Onboarding onDone={() => setScreen("welcome")} />;
-  if (screen === "welcome") return (
-    <Welcome onSignUp={() => setScreen("signup")} onSignIn={() => setScreen("signin")} />
-  );
-  if (screen === "signin") return (
-    <SignIn onBack={() => setScreen("welcome")} onSignUp={() => setScreen("signup")} onSuccess={() => setScreen("home")} />
-  );
-  if (screen === "signup") return (
-    <SignUp onBack={() => setScreen("welcome")} onSignIn={() => setScreen("signin")} onSuccess={() => setScreen("signin")} />
-  );
+  if (screen === "splash")    return <Splash    onDone={() => setScreen("onboarding")} />;
+  if (screen === "onboarding")return <Onboarding onDone={() => setScreen("welcome")} />;
+  if (screen === "welcome")   return <Welcome   onSignUp={() => setScreen("signup")} onSignIn={() => setScreen("signin")} />;
+  if (screen === "signin")    return <SignIn    onBack={() => setScreen("welcome")} onSignUp={() => setScreen("signup")} onSuccess={() => setScreen("home")} />;
+  if (screen === "signup")    return <SignUp    onBack={() => setScreen("welcome")} onSignIn={() => setScreen("signin")} onSuccess={() => setScreen("signin")} />;
   return null;
 }
