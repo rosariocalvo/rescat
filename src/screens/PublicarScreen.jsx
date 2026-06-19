@@ -187,6 +187,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
         fotoUrl = urlData?.publicUrl || null;
       }
     }
+    const nombreUsuario = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || null;
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "compartir",
@@ -197,6 +198,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
       longitud: lng,
       estado: "activa",
       foto_url: fotoUrl || null,
+      nombre_usuario: nombreUsuario,
     });
     setLoading(false);
     if (error) { alert("Error: " + error.message); return; }
@@ -343,6 +345,7 @@ function FormAyudar({ user, onBack, onSuccess }) {
       lat = pos.coords.latitude;
       lng = pos.coords.longitude;
     } catch {}
+    const nombreUsuario = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || null;
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "solicitar",
@@ -353,6 +356,7 @@ function FormAyudar({ user, onBack, onSuccess }) {
       latitud: lat,
       longitud: lng,
       estado: "activa",
+      nombre_usuario: anonimo ? null : nombreUsuario,
     });
     setLoading(false);
     if (error) { alert("Error: " + error.message); return; }
