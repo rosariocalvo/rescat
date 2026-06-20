@@ -158,7 +158,7 @@ export default function MapScreen({ user, onBack }) {
           </div>
           {/* Pills KM + Buscador alineados a la derecha */}
           <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8 }}>
-            <div style={{ display:"flex", gap:6 }}>
+            <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
           {[2,5,10].map(km => (
             <button key={km} onClick={() => {
               setRadio(km);
@@ -177,7 +177,7 @@ export default function MapScreen({ user, onBack }) {
           ))}
             </div>
             {/* Buscador */}
-            <div style={{ width:"100%" }}>
+            <div style={{ width:220 }}>
               <div style={{ background:"white", borderRadius:50, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, boxShadow:"0 2px 10px rgba(30,42,74,0.12)", border:"1px solid #e8eaf2" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#b0b8d0" strokeWidth="1.8"/><path d="M16.5 16.5L21 21" stroke="#b0b8d0" strokeWidth="1.8" strokeLinecap="round"/></svg>
             <input
