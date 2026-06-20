@@ -143,21 +143,22 @@ export default function MapScreen({ user, onBack }) {
 
       {/* Mapa ocupa todo */}
       <div style={{ flex:1, position:"relative" }}>
-        <div ref={mapContainer} style={{ width:"100%", height:"100%" }} />
+        <div ref={mapContainer} style={{ position:"absolute", top:0, left:0, right:0, bottom:0 }} />
 
-        {/* Header flotante */}
-        <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:20, padding:"48px 20px 12px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"linear-gradient(to bottom, white 60%, transparent)" }}>
-          <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:78, width:"auto" }} />
-          <div style={{ textAlign:"right" }}>
-            <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
-            <div style={{ background:"#f0f0f5", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
-              <IconoDC /><span style={{ fontWeight:700, fontSize:13, color:"#1e2a4a" }}>{dc} DC</span>
+        {/* Header flotante con degradado */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:20, background:"linear-gradient(to bottom, rgba(255,255,255,1) 55%, rgba(255,255,255,0))", paddingBottom:32 }}>
+          <div style={{ padding:"52px 20px 10px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:78, width:"auto" }} />
+            <div style={{ textAlign:"right" }}>
+              <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
+              <div style={{ background:"rgba(240,240,245,0.9)", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+                <IconoDC /><span style={{ fontWeight:700, fontSize:13, color:"#1e2a4a" }}>{dc} DC</span>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Pills KM */}
-        <div style={{ position:"absolute", top:148, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6, whiteSpace:"nowrap" }}>
+          {/* Pills KM + Buscador alineados a la derecha */}
+          <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8 }}>
+            <div style={{ display:"flex", gap:6 }}>
           {[2,5,10].map(km => (
             <button key={km} onClick={() => {
               setRadio(km);
@@ -174,11 +175,10 @@ export default function MapScreen({ user, onBack }) {
               {km} KM
             </button>
           ))}
-        </div>
-
-        {/* Buscador */}
-        <div style={{ position:"absolute", top:196, left:16, right:16, zIndex:20 }}>
-          <div style={{ background:"white", borderRadius:50, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, boxShadow:"0 2px 10px rgba(30,42,74,0.12)" }}>
+            </div>
+            {/* Buscador */}
+            <div style={{ width:"100%" }}>
+              <div style={{ background:"white", borderRadius:50, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, boxShadow:"0 2px 10px rgba(30,42,74,0.12)", border:"1px solid #e8eaf2" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#b0b8d0" strokeWidth="1.8"/><path d="M16.5 16.5L21 21" stroke="#b0b8d0" strokeWidth="1.8" strokeLinecap="round"/></svg>
             <input
               value={textoBusq}
@@ -202,6 +202,8 @@ export default function MapScreen({ user, onBack }) {
               ))}
             </div>
           )}
+            </div>
+          </div>
         </div>
 
         {/* Botón ubicación */}
