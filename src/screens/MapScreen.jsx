@@ -142,8 +142,8 @@ export default function MapScreen({ user, onBack }) {
       `}</style>
 
       {/* Header */}
-      <div style={{ padding:"52px 24px 12px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", flexShrink:0, zIndex:10 }}>
-        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:48, width:"auto" }} />
+      <div style={{ padding:"48px 20px 10px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", flexShrink:0, zIndex:10 }}>
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:60, width:"auto" }} />
         <div style={{ textAlign:"right" }}>
           <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
           <div style={{ background:"white", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6, boxShadow:"0 1px 8px rgba(30,42,74,0.10)" }}>
@@ -215,18 +215,13 @@ export default function MapScreen({ user, onBack }) {
               map.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 600 });
             });
           }
-        }} style={{ position:"absolute", bottom:150, right:16, zIndex:20, width:52, height:52, borderRadius:"50%", background:"white", border:"2px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 10px rgba(30,42,74,0.14)" }}>
+        }} style={{ position:"absolute", bottom:100, right:16, zIndex:20, width:44, height:44, borderRadius:"50%", background:"white", border:"1.5px solid #b8c0d8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.10)" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#1e2a4a"/>
           </svg>
         </button>
 
-        {/* Contador */}
-        {pubs.length > 0 && !selected && (
-          <div style={{ position:"absolute", bottom:90, right:16, zIndex:20, background:"#1e2a4a", borderRadius:50, padding:"6px 14px" }}>
-            <span style={{ fontSize:11, fontWeight:700, color:"white", fontFamily:"Outfit, sans-serif" }}>{pubs.length} insumo{pubs.length!==1?"s":""}</span>
-          </div>
-        )}
+
 
         {/* Card seleccionada */}
         {selected && (
