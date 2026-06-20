@@ -153,6 +153,20 @@ function FormCompartir({ user, onBack, onSuccess }) {
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState(null);
+  const [gpsStatus, setGpsStatus] = useState("cargando");
+
+  useEffect(() => {
+    if (!navigator.geolocation) { setGpsStatus("no_disponible"); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGpsStatus("ok");
+      },
+      () => setGpsStatus("error"),
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  }, []);
   const dc = user?.user_metadata?.dc || 240;
   const fileInputRef = { current: null };
 
@@ -172,12 +186,14 @@ function FormCompartir({ user, onBack, onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    let lat = null, lng = null, fotoUrl = null;
-    try {
-      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 }));
-      lat = pos.coords.latitude;
-      lng = pos.coords.longitude;
-    } catch {}
+    let lat = gpsCoords?.lat || null, lng = gpsCoords?.lng || null, fotoUrl = null;
+    if (!lat) {
+      try {
+        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true }));
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch {}
+    }
     if (fotoFile) {
       const ext = fotoFile.name.split(".").pop();
       const path = `insumos/${user.id}_${Date.now()}.${ext}`;
@@ -187,7 +203,6 @@ function FormCompartir({ user, onBack, onSuccess }) {
         fotoUrl = urlData?.publicUrl || null;
       }
     }
-    const nombreUsuario = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || null;
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "compartir",
@@ -198,7 +213,6 @@ function FormCompartir({ user, onBack, onSuccess }) {
       longitud: lng,
       estado: "activa",
       foto_url: fotoUrl || null,
-      nombre_usuario: nombreUsuario,
     });
     setLoading(false);
     if (error) { alert("Error: " + error.message); return; }
@@ -330,6 +344,16 @@ function FormAyudar({ user, onBack, onSuccess }) {
   const [mensaje, setMensaje] = useState("");
   const [anonimo, setAnonimo] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [gpsCoords, setGpsCoords] = useState(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  }, []);
   const dc = user?.user_metadata?.dc || 240;
 
   const dcPorTipo = { "Insulina": 80, "Sensor CGM": 120, "Bomba de insulina": 200, "Tiras reactivas": 30, "Lancetas": 15, "Glucómetro": 60, "Otro": 25 };
@@ -339,13 +363,18 @@ function FormAyudar({ user, onBack, onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
-    let lat = null, lng = null;
-    try {
-      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 }));
+    let lat = gpsCoords?.lat || null, lng = gpsCoords?.lng || null;
+    if (!lat) {
+      try {
+        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true }));
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+      } catch {}
+    }
+    l, { timeout: 8000 }));
       lat = pos.coords.latitude;
       lng = pos.coords.longitude;
     } catch {}
-    const nombreUsuario = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || null;
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "solicitar",
@@ -356,7 +385,6 @@ function FormAyudar({ user, onBack, onSuccess }) {
       latitud: lat,
       longitud: lng,
       estado: "activa",
-      nombre_usuario: anonimo ? null : nombreUsuario,
     });
     setLoading(false);
     if (error) { alert("Error: " + error.message); return; }
