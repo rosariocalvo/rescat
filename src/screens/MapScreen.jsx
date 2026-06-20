@@ -133,7 +133,7 @@ export default function MapScreen({ user, onBack }) {
   const tiposFiltrados = TIPOS.filter(t => textoBusq ? t.toLowerCase().includes(textoBusq.toLowerCase()) : true);
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"#f0f0f5", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
+    <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"white", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
         @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(30,42,74,0.4)} 70%{box-shadow:0 0 0 10px rgba(30,42,74,0)} 100%{box-shadow:0 0 0 0 rgba(30,42,74,0)} }
@@ -141,23 +141,23 @@ export default function MapScreen({ user, onBack }) {
         .mapboxgl-ctrl-bottom-right { bottom:80px !important; }
       `}</style>
 
-      {/* Header */}
-      <div style={{ padding:"48px 20px 10px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", flexShrink:0, zIndex:10 }}>
-        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:60, width:"auto" }} />
-        <div style={{ textAlign:"right" }}>
-          <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
-          <div style={{ background:"white", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6, boxShadow:"0 1px 8px rgba(30,42,74,0.10)" }}>
-            <IconoDC /><span style={{ fontWeight:700, fontSize:13, color:"#1e2a4a" }}>{dc} DC</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Mapa */}
+      {/* Mapa ocupa todo */}
       <div style={{ flex:1, position:"relative" }}>
         <div ref={mapContainer} style={{ width:"100%", height:"100%" }} />
 
+        {/* Header flotante */}
+        <div style={{ position:"absolute", top:0, left:0, right:0, zIndex:20, padding:"48px 20px 12px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"linear-gradient(to bottom, white 60%, transparent)" }}>
+          <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:78, width:"auto" }} />
+          <div style={{ textAlign:"right" }}>
+            <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
+            <div style={{ background:"#f0f0f5", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6 }}>
+              <IconoDC /><span style={{ fontWeight:700, fontSize:13, color:"#1e2a4a" }}>{dc} DC</span>
+            </div>
+          </div>
+        </div>
+
         {/* Pills KM */}
-        <div style={{ position:"absolute", top:12, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6, whiteSpace:"nowrap" }}>
+        <div style={{ position:"absolute", top:148, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6, whiteSpace:"nowrap" }}>
           {[2,5,10].map(km => (
             <button key={km} onClick={() => {
               setRadio(km);
@@ -177,7 +177,7 @@ export default function MapScreen({ user, onBack }) {
         </div>
 
         {/* Buscador */}
-        <div style={{ position:"absolute", top:58, left:16, right:16, zIndex:20 }}>
+        <div style={{ position:"absolute", top:196, left:16, right:16, zIndex:20 }}>
           <div style={{ background:"white", borderRadius:50, padding:"10px 16px", display:"flex", alignItems:"center", gap:8, boxShadow:"0 2px 10px rgba(30,42,74,0.12)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7.5" stroke="#b0b8d0" strokeWidth="1.8"/><path d="M16.5 16.5L21 21" stroke="#b0b8d0" strokeWidth="1.8" strokeLinecap="round"/></svg>
             <input
@@ -215,7 +215,7 @@ export default function MapScreen({ user, onBack }) {
               map.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 600 });
             });
           }
-        }} style={{ position:"absolute", bottom:100, right:16, zIndex:20, width:44, height:44, borderRadius:"50%", background:"white", border:"1.5px solid #b8c0d8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.10)" }}>
+        }} style={{ position:"absolute", bottom:90, right:16, zIndex:20, width:40, height:40, borderRadius:"50%", background:"white", border:"1px solid #dde0ea", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 4px rgba(30,42,74,0.08)" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#1e2a4a"/>
           </svg>
