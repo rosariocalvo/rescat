@@ -143,6 +143,61 @@ function PublicarMenu({ user, onSelectCompartir, onSelectAyudar }) {
   );
 }
 
+
+function UbicacionInput({ value, onChange, onCoordsChange, inputStyle, labelStyle }) {
+  const [sugerencias, setSugerencias] = useState([]);
+  const [showDrop, setShowDrop] = useState(false);
+  const token = import.meta.env.VITE_MAPBOX_TOKEN;
+
+  async function buscar(texto) {
+    onChange(texto);
+    if (texto.length < 3) { setSugerencias([]); return; }
+    try {
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(texto)}.json?country=cl&language=es&limit=5&access_token=${token}`);
+      const data = await res.json();
+      setSugerencias(data.features || []);
+      setShowDrop(true);
+    } catch {}
+  }
+
+  function elegir(f) {
+    onChange(f.place_name);
+    onCoordsChange({ lat: f.center[1], lng: f.center[0] });
+    setSugerencias([]);
+    setShowDrop(false);
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      <label style={labelStyle}>Ubicación</label>
+      <div style={{ position: "relative" }}>
+        <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none", zIndex:1 }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
+        </span>
+        <input
+          style={{ ...inputStyle, paddingLeft: 44 }}
+          value={value}
+          onChange={e => buscar(e.target.value)}
+          onBlur={() => setTimeout(() => setShowDrop(false), 150)}
+          onFocus={() => sugerencias.length > 0 && setShowDrop(true)}
+          placeholder="Ej: Av. Apoquindo 4500, Las Condes"
+          required
+        />
+      </div>
+      {showDrop && sugerencias.length > 0 && (
+        <div style={{ position:"absolute", top:"100%", left:0, right:0, background:"white", borderRadius:14, boxShadow:"0 4px 20px rgba(30,42,74,0.14)", zIndex:100, overflow:"hidden", marginTop:4 }}>
+          {sugerencias.map((f, i) => (
+            <div key={i} onMouseDown={() => elegir(f)} style={{ padding:"12px 16px", fontSize:13, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", borderBottom:"1px solid #f0f0f5", cursor:"pointer", display:"flex", gap:10, alignItems:"flex-start" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, marginTop:2 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#7890D0"/></svg>
+              <span>{f.place_name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FormCompartir({ user, onBack, onSuccess }) {
   const [tipoInsumo, setTipoInsumo] = useState("");
   const [tipoCustom, setTipoCustom] = useState("");
@@ -150,23 +205,10 @@ function FormCompartir({ user, onBack, onSuccess }) {
   const [cantidad, setCantidad] = useState("");
   const [fechaVenc, setFechaVenc] = useState("");
   const [ubicacion, setUbicacion] = useState("");
+  const [ubicacionCoords, setUbicacionCoords] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [gpsCoords, setGpsCoords] = useState(null);
-  const [gpsStatus, setGpsStatus] = useState("cargando");
-
-  useEffect(() => {
-    if (!navigator.geolocation) { setGpsStatus("no_disponible"); return; }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setGpsStatus("ok");
-      },
-      () => setGpsStatus("error"),
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  }, []);
   const dc = user?.user_metadata?.dc || 240;
   const fileInputRef = { current: null };
 
@@ -185,15 +227,9 @@ function FormCompartir({ user, onBack, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!ubicacionCoords) { alert("Por favor selecciona una dirección de la lista."); return; }
     setLoading(true);
-    let lat = gpsCoords?.lat || null, lng = gpsCoords?.lng || null, fotoUrl = null;
-    if (!lat) {
-      try {
-        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true }));
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-      } catch {}
-    }
+    let lat = ubicacionCoords.lat, lng = ubicacionCoords.lng, fotoUrl = null;
     if (fotoFile) {
       const ext = fotoFile.name.split(".").pop();
       const path = `insumos/${user.id}_${Date.now()}.${ext}`;
@@ -311,22 +347,7 @@ function FormCompartir({ user, onBack, onSuccess }) {
             </div>
           </div>
           <div style={{ marginBottom: 28 }}>
-            <label style={labelStyle}>Ubicación</label>
-            <div style={{ position: "relative" }}>
-              <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
-              </span>
-              <input style={{ ...inputStyle, paddingLeft: 44, paddingRight: 44 }} value={ubicacion} onChange={e => setUbicacion(e.target.value)} placeholder="Las Condes, Santiago" />
-              <span style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", cursor:"pointer" }}
-                onClick={async () => {
-                  try {
-                    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej));
-                    setUbicacion(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
-                  } catch {}
-                }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              </span>
-            </div>
+            <UbicacionInput value={ubicacion} onChange={setUbicacion} onCoordsChange={setUbicacionCoords} inputStyle={inputStyle} labelStyle={labelStyle} />
           </div>
           <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
             {loading ? "Publicando..." : "Publicar insumo"}
@@ -344,16 +365,8 @@ function FormAyudar({ user, onBack, onSuccess }) {
   const [mensaje, setMensaje] = useState("");
   const [anonimo, setAnonimo] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [gpsCoords, setGpsCoords] = useState(null);
-
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      (pos) => setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { timeout: 10000, enableHighAccuracy: true }
-    );
-  }, []);
+  const [ubicacion, setUbicacion] = useState("");
+  const [ubicacionCoords, setUbicacionCoords] = useState(null);
   const dc = user?.user_metadata?.dc || 240;
 
   const dcPorTipo = { "Insulina": 80, "Sensor CGM": 120, "Bomba de insulina": 200, "Tiras reactivas": 30, "Lancetas": 15, "Glucómetro": 60, "Otro": 25 };
@@ -362,154 +375,7 @@ function FormAyudar({ user, onBack, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!ubicacionCoords) { alert("Por favor selecciona una dirección de la lista."); return; }
     setLoading(true);
-    let lat = gpsCoords?.lat || null, lng = gpsCoords?.lng || null;
-    if (!lat) {
-      try {
-        const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000, enableHighAccuracy: true }));
-        lat = pos.coords.latitude;
-        lng = pos.coords.longitude;
-      } catch {}
-    }
-    const { error } = await supabase.from("publicaciones").insert({
-      user_id: user.id,
-      tipo: "solicitar",
-      nombre_insumo: nombreFinal,
-      urgente: urgente,
-      anonimo: anonimo,
-      mensaje: mensaje || null,
-      latitud: lat,
-      longitud: lng,
-      estado: "activa",
-    });
-    setLoading(false);
-    if (error) { alert("Error: " + error.message); return; }
-    onSuccess();
-  }
-
-  const inputStyle = { width: "100%", padding: "14px 16px", borderRadius: 14, border: "1.5px solid #e0e2ec", background: "white", fontSize: 14, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", outline: "none", boxSizing: "border-box", WebkitAppearance: "none", MozAppearance: "none", appearance: "none" };
-  const labelStyle = { fontSize: 13, fontWeight: 600, color: "#1e2a4a", marginBottom: 8, display: "block", fontFamily: "Outfit, sans-serif" };
-
-  return (
-    <div style={{ paddingBottom: 100, fontFamily: "Outfit, sans-serif" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
-      <div style={{ padding: "52px 24px 24px", display: "flex", alignItems: "center", gap: 14 }}>
-        <button onClick={onBack} style={{ background: "white", border: "none", borderRadius: 14, width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", boxShadow: "0 1px 6px rgba(30,42,74,0.10)", flexShrink: 0 }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-        </button>
-        <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Solicitar ayuda</h2>
-      </div>
-      <div style={{ padding: "0 24px" }}>
-        {tipoInsumo && (
-          <div style={{ background: "#fff4f4", border: "1.5px solid #f0c0be", borderRadius: 18, padding: "16px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(236,103,101,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <svg viewBox="252 89 21 21" width="24" height="24" fill="none"><path d="M271.931 100.156C271.931 105.219 267.827 109.323 262.764 109.323C257.702 109.323 253.598 105.219 253.598 100.156C253.598 95.0933 257.702 90.9893 262.764 90.9893C267.827 90.9893 271.931 95.0933 271.931 100.156Z" fill="#EC6765"/></svg>
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 600, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>Valor estimado</p>
-              <p style={{ margin: "0 0 4px", fontSize: 11, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>Basado en publicaciones similares</p>
-              <span style={{ fontSize: 22, fontWeight: 700, color: "#EC6765", fontFamily: "Outfit, sans-serif" }}>{valorDC} DC</span>
-            </div>
-            <div style={{ background: "white", borderRadius: 50, padding: "6px 14px", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 1px 6px rgba(30,42,74,0.08)" }}>
-              <IconoDC />
-              <span style={{ fontWeight: 700, fontSize: 13, color: "#1e2a4a", fontFamily: "Outfit, sans-serif" }}>{dc} DC</span>
-            </div>
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>¿Qué insumo necesitas?</label>
-            <div style={{ position: "relative" }}>
-              <select value={tipoInsumo} onChange={e => setTipoInsumo(e.target.value)} required style={{ ...inputStyle, paddingRight: 40 }}>
-                <option value="">Seleccionar...</option>
-                <option>Insulina</option>
-                <option>Sensor CGM</option>
-                <option>Bomba de insulina</option>
-                <option>Tiras reactivas</option>
-                <option>Lancetas</option>
-                <option>Glucómetro</option>
-                <option>Otro</option>
-              </select>
-              <svg style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }} width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#7b80a0" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </div>
-            {tipoInsumo === "Otro" && (
-              <input style={{ ...inputStyle, marginTop: 10 }} value={tipoCustom} onChange={e => setTipoCustom(e.target.value)} placeholder="Describe el insumo..." required />
-            )}
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Urgencia</label>
-            <div style={{ display: "flex", gap: 12 }}>
-              <button type="button" onClick={() => setUrgente(false)} style={{ flex:1, padding:"14px 16px", borderRadius:14, cursor:"pointer", fontFamily:"Outfit, sans-serif", fontWeight:600, fontSize:14, border:`1.5px solid ${!urgente?"#7890D0":"#e0e2ec"}`, background:!urgente?"#f0f1f9":"white", color:!urgente?"#1e2a4a":"#7b80a0", display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ width:12, height:12, borderRadius:"50%", background:!urgente?"#7890D0":"#e0e2ec", flexShrink:0 }}/>Normal
-              </button>
-              <button type="button" onClick={() => setUrgente(true)} style={{ flex:1, padding:"14px 16px", borderRadius:14, cursor:"pointer", fontFamily:"Outfit, sans-serif", fontWeight:600, fontSize:14, border:`1.5px solid ${urgente?"#EC6765":"#e0e2ec"}`, background:urgente?"#fff4f4":"white", color:urgente?"#EC6765":"#7b80a0", display:"flex", alignItems:"center", gap:10 }}>
-                <div style={{ width:12, height:12, borderRadius:"50%", background:urgente?"#EC6765":"#e0e2ec", flexShrink:0 }}/>Urgente
-              </button>
-            </div>
-          </div>
-          <div style={{ marginBottom: 20 }}>
-            <label style={labelStyle}>Mensaje opcional</label>
-            <div style={{ position: "relative" }}>
-              <textarea value={mensaje} onChange={e => setMensaje(e.target.value.slice(0, 150))} placeholder="Mi sensor se despegó hoy y necesito uno lo antes posible." style={{ ...inputStyle, height:110, resize:"none", paddingBottom:28 }} />
-              <span style={{ position:"absolute", bottom:12, right:16, fontSize:11, color:"#b0b8d0", fontFamily:"Outfit, sans-serif" }}>{mensaje.length} / 150</span>
-            </div>
-          </div>
-          <div style={{ marginBottom: 28 }}>
-            <label style={labelStyle}>¿Cómo quieres publicar esta solicitud?</label>
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              <div onClick={() => setAnonimo(false)} style={{ background:"white", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:14, cursor:"pointer", border:`1.5px solid ${!anonimo?"#7890D0":"#e0e2ec"}` }}>
-                <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${!anonimo?"#7890D0":"#e0e2ec"}`, background:!anonimo?"#7890D0":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  {!anonimo && <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-                <span style={{ fontSize:14, fontWeight:500, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>Mostrar mi perfil</span>
-              </div>
-              <div onClick={() => setAnonimo(true)} style={{ background:"white", borderRadius:14, padding:"14px 16px", display:"flex", alignItems:"center", gap:14, cursor:"pointer", border:`1.5px solid ${anonimo?"#7890D0":"#e0e2ec"}` }}>
-                <div style={{ width:22, height:22, borderRadius:6, border:`2px solid ${anonimo?"#7890D0":"#e0e2ec"}`, background:anonimo?"#7890D0":"white", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  {anonimo && <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
-                </div>
-                <span style={{ fontSize:14, fontWeight:500, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>Solicitar de forma anónima</span>
-              </div>
-            </div>
-            {anonimo && <p style={{ margin:"10px 0 0", fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4 }}>Tu identidad permanecerá oculta hasta que un miembro acepte ayudarte.</p>}
-          </div>
-          <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#EC6765", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-            {loading ? "Publicando..." : "Solicitar ayuda"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function Confirmacion({ tipo, onNuevo, onInicio }) {
-  return (
-    <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", height:"70vh", padding:"0 24px", fontFamily:"Outfit, sans-serif" }}>
-      <div style={{ fontSize:64, marginBottom:16 }}>{tipo==="compartir"?"✅":"🙏"}</div>
-      <h3 style={{ fontSize:22, fontWeight:700, color:"#1e2a4a", margin:"0 0 8px" }}>¡Publicado!</h3>
-      <p style={{ color:"#7b80a0", textAlign:"center", marginBottom:32 }}>{tipo==="compartir"?"Tu insumo ya está visible en el mapa.":"Tu comunidad verá tu pedido en el mapa."}</p>
-      <button onClick={onNuevo} style={{ width:"100%", padding:16, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:15, cursor:"pointer", marginBottom:12, fontFamily:"Outfit, sans-serif" }}>Publicar otro</button>
-      <button onClick={onInicio} style={{ width:"100%", padding:16, background:"transparent", border:"1.5px solid #dde0ea", borderRadius:50, color:"#7b80a0", fontSize:15, fontWeight:500, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>Volver al inicio</button>
-    </div>
-  );
-}
-
-export default function PublicarScreen({ user, onBack }) {
-  const [view, setView] = useState("menu");
-  return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
-      {view==="menu" && <PublicarMenu user={user} onSelectCompartir={()=>setView("compartir")} onSelectAyudar={()=>setView("ayudar")}/>}
-      {view==="compartir" && <FormCompartir user={user} onBack={()=>setView("menu")} onSuccess={()=>setView("ok_compartir")}/>}
-      {view==="ayudar" && <FormAyudar user={user} onBack={()=>setView("menu")} onSuccess={()=>setView("ok_ayudar")}/>}
-      {view==="ok_compartir" && <Confirmacion tipo="compartir" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
-      {view==="ok_ayudar" && <Confirmacion tipo="ayudar" onNuevo={()=>setView("menu")} onInicio={onBack}/>}
-      <BottomNav activeTab="publicar" onTabChange={(tab)=>{
-        if (tab === "buscar") window.dispatchEvent(new CustomEvent("openMapa"));
-        else if (tab === "canjes") window.dispatchEvent(new CustomEvent("openCanjes"));
-        else if (tab === "perfil") window.dispatchEvent(new CustomEvent("openPerfil"));
-        else if (tab === "inicio") onBack();
-        else onBack();
-      }}/>
-    </div>
-  );
-}
+    let lat = ubicacionCoords.lat, lng = ubicacionCoords.lng;
+    const nombreUsuario
