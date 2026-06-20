@@ -142,12 +142,12 @@ export default function MapScreen({ user, onBack }) {
       `}</style>
 
       {/* Header */}
-      <div style={{ padding:"52px 24px 14px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", flexShrink:0, zIndex:10 }}>
-        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:100, width:"auto" }} />
+      <div style={{ padding:"52px 24px 12px", display:"flex", justifyContent:"space-between", alignItems:"center", background:"#f0f0f5", flexShrink:0, zIndex:10 }}>
+        <img src="/logo_rescat.png" alt="RESCAT+" style={{ height:48, width:"auto" }} />
         <div style={{ textAlign:"right" }}>
-          <p style={{ margin:"0 0 6px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
-          <div style={{ background:"white", borderRadius:50, padding:"6px 14px", display:"inline-flex", alignItems:"center", gap:6, boxShadow:"0 1px 8px rgba(30,42,74,0.10)" }}>
-            <IconoDC /><span style={{ fontWeight:700, fontSize:14, color:"#1e2a4a" }}>{dc} DC</span>
+          <p style={{ margin:"0 0 4px", fontSize:13, fontWeight:700, color:"#1e2a4a" }}>HOLA, {firstName}</p>
+          <div style={{ background:"white", borderRadius:50, padding:"5px 12px", display:"inline-flex", alignItems:"center", gap:6, boxShadow:"0 1px 8px rgba(30,42,74,0.10)" }}>
+            <IconoDC /><span style={{ fontWeight:700, fontSize:13, color:"#1e2a4a" }}>{dc} DC</span>
           </div>
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function MapScreen({ user, onBack }) {
         <div ref={mapContainer} style={{ width:"100%", height:"100%" }} />
 
         {/* Pills KM */}
-        <div style={{ position:"absolute", top:14, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6 }}>
+        <div style={{ position:"absolute", top:12, left:"50%", transform:"translateX(-50%)", zIndex:20, display:"flex", gap:6, whiteSpace:"nowrap" }}>
           {[2,5,10].map(km => (
             <button key={km} onClick={() => {
               setRadio(km);
@@ -215,7 +215,7 @@ export default function MapScreen({ user, onBack }) {
               map.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 600 });
             });
           }
-        }} style={{ position:"absolute", bottom:96, right:16, zIndex:20, width:48, height:48, borderRadius:"50%", background:"white", border:"1.5px solid #c8cce8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.10)" }}>
+        }} style={{ position:"absolute", bottom:150, right:16, zIndex:20, width:52, height:52, borderRadius:"50%", background:"white", border:"2px solid #7890D0", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 2px 10px rgba(30,42,74,0.14)" }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="#1e2a4a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="#1e2a4a"/>
           </svg>
