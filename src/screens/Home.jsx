@@ -163,17 +163,24 @@ function TabInicio({ user, onVerTodas }) {
         <p style={{ fontSize: 14, color: "#7b80a0", margin: "0 0 28px", fontFamily: "Outfit, sans-serif" }}>¿Necesitas algún insumo hoy?</p>
 
         <div onClick={() => window.dispatchEvent(new CustomEvent("openMapa"))}
-          style={{ background: "#e8eaf0", borderRadius: 20, padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 32, cursor: "pointer" }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
-              <p style={{ margin: 0, fontSize: 13, color: "#7b80a0", fontFamily: "Outfit, sans-serif" }}>{publicaciones.length > 0 ? `${publicaciones.length} publicaciones` : "Insumos"} cerca de ti</p>
+          style={{ background: "#e8eaf0", borderRadius: 20, padding: "20px", display: "flex", justifyContent: "space-between", alignItems: "stretch", marginBottom: 32, cursor: "pointer", gap: 16 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 10 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#1e2a4a"/></svg>
+              <p style={{ margin: "0 0 4px", fontSize: 18, fontWeight: 700, color: "#1e2a4a", fontFamily: "Outfit, sans-serif", lineHeight: 1.3 }}>
+                {publicaciones.length > 0 ? `${publicaciones.length} publicaciones` : "Publicaciones"} cerca de ti
+              </p>
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5b6080", fontFamily: "Outfit, sans-serif" }}>En un radio de 2 km</p>
             </div>
-            <p style={{ margin: "0 0 4px", fontSize: 13, color: "#5b6080", fontFamily: "Outfit, sans-serif" }}>En un radio de 2 km</p>
-            <div style={{ background: "#7890D0", color: "white", borderRadius: 50, padding: "10px 20px", display: "inline-block", fontSize: 14, fontWeight: 600, fontFamily: "Outfit, sans-serif", marginTop: 10 }}>Ver Mapa →</div>
+            <div style={{ background: "#7890D0", color: "white", borderRadius: 12, padding: "12px 20px", display: "inline-block", fontSize: 15, fontWeight: 700, fontFamily: "Outfit, sans-serif" }}>Ver Mapa →</div>
           </div>
-          <div style={{ width: 100, height: 100, borderRadius: 16, background: "#d0d4e8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
+          <div style={{ width: 130, borderRadius: 16, background: "#d0d4e8", overflow: "hidden", flexShrink: 0, minHeight: 140 }}>
+            <img
+              src={`https://api.mapbox.com/styles/v1/rosariocalvo/cmq5um0xt007201queia40i36/static/-70.6483,-33.4569,13,0/260x280@2x?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`}
+              alt="mapa"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              onError={e => { e.target.style.display = "none"; }}
+            />
           </div>
         </div>
 
