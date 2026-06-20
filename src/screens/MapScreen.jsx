@@ -227,31 +227,25 @@ export default function MapScreen({ user, onBack }) {
 
         {/* Card seleccionada */}
         {selected && (
-          <div style={{ position:"absolute", bottom:82, left:12, right:12, zIndex:20, background:"white", borderRadius:20, boxShadow:"0 8px 32px rgba(30,42,74,0.18)", overflow:"hidden" }}>
+          <div style={{ position:"absolute", bottom:80, left:12, right:12, zIndex:20, background:"white", borderRadius:20, boxShadow:"0 8px 32px rgba(30,42,74,0.15)", overflow:"hidden" }}>
+            {/* Badge cercano */}
+            <div style={{ background:"#1e2a4a", padding:"8px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <span style={{ fontSize:11, fontWeight:700, color:"white", letterSpacing:"0.08em", fontFamily:"Outfit, sans-serif" }}>
+                CERCANO · {selected.latitud && userPos ? distKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1) : "0.0"} KM
+              </span>
+              <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", color:"white", fontSize:18, lineHeight:1, padding:0 }}>✕</button>
+            </div>
+            {/* Foto */}
             {selected.foto_url && (
-              <div style={{ position:"relative" }}>
-                <img src={selected.foto_url} alt="" style={{ width:"100%", height:150, objectFit:"cover" }} />
-                <button onClick={() => setSelected(null)} style={{ position:"absolute", top:10, right:10, background:"rgba(0,0,0,0.35)", border:"none", borderRadius:"50%", width:30, height:30, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", color:"white", fontSize:16, lineHeight:1 }}>✕</button>
-              </div>
+              <img src={selected.foto_url} alt="" style={{ width:"100%", height:160, objectFit:"cover", display:"block" }} />
             )}
-            <div style={{ padding:"14px 16px" }}>
-              {!selected.foto_url && (
-                <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:4 }}>
-                  <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", fontSize:20, color:"#b0b8d0", padding:4 }}>✕</button>
-                </div>
-              )}
-              <div style={{ marginBottom:10 }}>
-                {userPos && selected.latitud && (
-                  <p style={{ margin:"0 0 3px", fontSize:11, fontWeight:700, color:"#b0b8d0", letterSpacing:"0.05em" }}>
-                    CERCANO · {distKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1)} KM
-                  </p>
-                )}
-                <p style={{ margin:"0 0 3px", fontSize:17, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
-                <p style={{ margin:0, fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif" }}>
-                  {selected.anonimo ? "Anónimo" : (selected.nombre_usuario || "Miembro RESCAT")}
-                  {selected.cantidad ? " · " + selected.cantidad : ""}
-                </p>
-              </div>
+            {/* Contenido */}
+            <div style={{ padding:"14px 16px 16px" }}>
+              <p style={{ margin:"0 0 2px", fontSize:20, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
+              <p style={{ margin:"0 0 14px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif" }}>
+                {selected.anonimo ? "Anónimo" : (selected.nombre_usuario || "Miembro RESCAT")}
+                {selected.cantidad ? " · " + selected.cantidad : ""}
+              </p>
               {selected.mensaje && (
                 <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4, fontStyle:"italic" }}>"{selected.mensaje}"</p>
               )}
@@ -276,10 +270,10 @@ export default function MapScreen({ user, onBack }) {
                     );
                   }
                   window.dispatchEvent(new CustomEvent("openCanjes"));
-                }} style={{ flex:1, padding:"13px", background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                }} style={{ flex:1, padding:"13px", background:"white", color:"#1e2a4a", border:"1.5px solid #1e2a4a", borderRadius:50, fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
                   Reservar canje
                 </button>
-                <button onClick={() => toggleLike(selected.id)} style={{ width:46, height:46, borderRadius:"50%", background: liked.has(selected.id) ? "#EC6765" : "#fff0f2", border: liked.has(selected.id) ? "none" : "1.5px solid #ffd0d4", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
+                <button onClick={() => toggleLike(selected.id)} style={{ width:46, height:46, borderRadius:"50%", background: liked.has(selected.id) ? "#EC6765" : "white", border: liked.has(selected.id) ? "none" : "1.5px solid #e0e0e8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                     <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
                       fill={liked.has(selected.id) ? "white" : "none"}
