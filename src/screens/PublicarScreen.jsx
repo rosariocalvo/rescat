@@ -371,10 +371,6 @@ function FormAyudar({ user, onBack, onSuccess }) {
         lng = pos.coords.longitude;
       } catch {}
     }
-    l, { timeout: 8000 }));
-      lat = pos.coords.latitude;
-      lng = pos.coords.longitude;
-    } catch {}
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "solicitar",
