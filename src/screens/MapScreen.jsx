@@ -34,7 +34,7 @@ export default function MapScreen({ user, onBack }) {
   const map          = useRef(null);
   const markersRef   = useRef([]);
 
-  const [radio,     setRadio]     = useState(2);
+  const [radio,     setRadio]     = useState(50);
   const [todasPubs, setTodasPubs] = useState([]); // TODAS sin filtrar por radio
   const [filtro,    setFiltro]    = useState("");
   const [textoBusq, setTextoBusq] = useState("");
@@ -159,10 +159,10 @@ export default function MapScreen({ user, onBack }) {
           {/* Pills KM + Buscador alineados a la derecha */}
           <div style={{ padding:"0 20px", display:"flex", flexDirection:"column", alignItems:"flex-end", gap:8 }}>
             <div style={{ display:"flex", gap:6, justifyContent:"flex-end" }}>
-          {[2,5,10].map(km => (
+          {[2,5,10,50].map(km => (
             <button key={km} onClick={() => {
               setRadio(km);
-              const zoomMap = { 2: 14, 5: 12.5, 10: 11 };
+              const zoomMap = { 2: 14, 5: 12.5, 10: 11, 50: 9 };
               const center = userPos ? [userPos.lng, userPos.lat] : [-70.6483, -33.4569];
               map.current?.flyTo({ center, zoom: zoomMap[km], duration: 600 });
             }} style={{
@@ -253,23 +253,22 @@ export default function MapScreen({ user, onBack }) {
                 <button onClick={async () => {
                   if (!user) return;
                   if (selected.user_id === user.id) { alert("Esta es tu propia publicación."); return; }
-                  const { data: existing } = await import("../supabase").then(m =>
-                    m.supabase.from("mensajes").select("id")
+                  try {
+                    const { data: existing } = await supabase.from("mensajes").select("id")
                       .eq("publicacion_id", selected.id)
                       .eq("remitente_id", user.id)
-                      .limit(1)
-                  );
-                  if (!existing || existing.length === 0) {
-                    await import("../supabase").then(m =>
-                      m.supabase.from("mensajes").insert({
+                      .limit(1);
+                    if (!existing || existing.length === 0) {
+                      const { error } = await supabase.from("mensajes").insert({
                         publicacion_id: selected.id,
                         remitente_id: user.id,
                         destinatario_id: selected.user_id,
                         contenido: "Hola, me interesa tu publicación de " + selected.nombre_insumo + " 👋",
-                      })
-                    );
-                  }
-                  window.dispatchEvent(new CustomEvent("openCanjes"));
+                      });
+                      if (error) { alert("Error: " + error.message); return; }
+                    }
+                    window.dispatchEvent(new CustomEvent("openCanjes"));
+                  } catch(e) { alert("Error: " + e.message); }
                 }} style={{ flex:1, padding:"13px", background:"white", color:"#1e2a4a", border:"1.5px solid #1e2a4a", borderRadius:50, fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
                   Reservar canje
                 </button>
