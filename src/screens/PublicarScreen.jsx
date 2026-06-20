@@ -481,6 +481,9 @@ function FormAyudar({ user, onBack, onSuccess }) {
             </div>
             {anonimo && <p style={{ margin:"10px 0 0", fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4 }}>Tu identidad permanecerá oculta hasta que un miembro acepte ayudarte.</p>}
           </div>
+          <div style={{ marginBottom: 20 }}>
+            <UbicacionInput value={ubicacion} onChange={setUbicacion} onCoordsChange={setUbicacionCoords} inputStyle={inputStyle} labelStyle={labelStyle} />
+          </div>
           <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#EC6765", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
             {loading ? "Publicando..." : "Solicitar ayuda"}
           </button>
