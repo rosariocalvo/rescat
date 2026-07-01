@@ -79,7 +79,7 @@ export default function MapScreen({ user, onBack }) {
     if (!document.getElementById("rescat-marker-style")) {
       const s = document.createElement("style");
       s.id = "rescat-marker-style";
-      s.textContent = `@keyframes markerPulse { 0%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0.6)} 50%{transform:scale(1.2);box-shadow:0 0 0 10px rgba(120,144,208,0)} 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0)} }`;
+      s.textContent = `@keyframes ringPulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.4} 100%{transform:translate(-50%,-50%) scale(2.5);opacity:0} }`;
       document.head.appendChild(s);
     }
     if (map.current) return;
@@ -100,29 +100,47 @@ export default function MapScreen({ user, onBack }) {
     });
   }, []);
 
-  // ── Marcadores — se actualizan cuando cambia pubs ──────────────────────
+  // ── Marcadores ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!map.current) return;
-    const addMarkers = () => {
+
+    function dibujarMarcadores() {
       markersRef.current.forEach(m => m.remove());
       markersRef.current = [];
       pubs.forEach(pub => {
-        if (!pub.latitud) return;
-        const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
-        const el = document.createElement("div");
-        const delay = Math.random() * 2;
-        el.style.cssText = `width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out ${delay}s infinite;`;
-        el.addEventListener("click", () => {
+        if (!pub.latitud || !pub.longitud) return;
+        const isCompartir = pub.tipo === "compartir";
+        const color = isCompartir ? "#7890D0" : "#EC6765";
+        const glow = isCompartir ? "rgba(120,144,208,0.5)" : "rgba(236,103,101,0.5)";
+        const delay = (Math.random() * 1.5).toFixed(2);
+
+        const wrapper = document.createElement("div");
+        wrapper.style.cssText = "position:relative;width:32px;height:32px;cursor:pointer;";
+
+        const ring = document.createElement("div");
+        ring.style.cssText = `position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:${color};opacity:0.3;animation:ringPulse 2s ease-out ${delay}s infinite;`;
+
+        const dot = document.createElement("div");
+        dot.style.cssText = `position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};`;
+
+        wrapper.appendChild(ring);
+        wrapper.appendChild(dot);
+        wrapper.addEventListener("click", () => {
           setSelected(pub);
           map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
         });
-        markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([pub.longitud, pub.latitud]).addTo(map.current));
+
+        const marker = new mapboxgl.Marker({ element: wrapper, anchor: "center" })
+          .setLngLat([pub.longitud, pub.latitud])
+          .addTo(map.current);
+        markersRef.current.push(marker);
       });
-    };
+    }
+
     if (map.current.loaded()) {
-      addMarkers();
+      dibujarMarcadores();
     } else {
-      map.current.on("load", addMarkers);
+      map.current.once("load", dibujarMarcadores);
     }
   }, [pubs]);
 
