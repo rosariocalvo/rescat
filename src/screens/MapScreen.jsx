@@ -102,22 +102,28 @@ export default function MapScreen({ user, onBack }) {
 
   // ── Marcadores — se actualizan cuando cambia pubs ──────────────────────
   useEffect(() => {
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
-    pubs.forEach(pub => {
-      const lat = pub.latitud || -33.4489;
-      const lng = pub.longitud || -70.6693;
-      if (!pub.latitud) return; // sin coordenadas no mostrar en mapa
-      const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
-      const el = document.createElement("div");
-      const delay = Math.random() * 2;
-      el.style.cssText = `width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out ${delay}s infinite;`;
-      el.addEventListener("click", () => {
-        setSelected(pub);
-        map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
+    if (!map.current) return;
+    const addMarkers = () => {
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
+      pubs.forEach(pub => {
+        if (!pub.latitud) return;
+        const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
+        const el = document.createElement("div");
+        const delay = Math.random() * 2;
+        el.style.cssText = `width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out ${delay}s infinite;`;
+        el.addEventListener("click", () => {
+          setSelected(pub);
+          map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
+        });
+        markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([pub.longitud, pub.latitud]).addTo(map.current));
       });
-      markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([pub.longitud, pub.latitud]).addTo(map.current));
-    });
+    };
+    if (map.current.loaded()) {
+      addMarkers();
+    } else {
+      map.current.on("load", addMarkers);
+    }
   }, [pubs]);
 
   const [liked, setLiked] = useState(new Set());
