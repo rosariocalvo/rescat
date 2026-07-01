@@ -118,7 +118,7 @@ export default function MapScreen({ user, onBack }) {
       });
       markersRef.current.push(new mapboxgl.Marker({ element: el }).setLngLat([pub.longitud, pub.latitud]).addTo(map.current));
     });
-  }, [pubs, radio, todasPubs, filtro]);
+  }, [pubs]);
 
   const [liked, setLiked] = useState(new Set());
 
