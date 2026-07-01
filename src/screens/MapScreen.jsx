@@ -46,15 +46,13 @@ export default function MapScreen({ user, onBack }) {
   const dc        = user?.user_metadata?.dc || 240;
   const firstName = nombre.split(" ")[0].toUpperCase();
 
-  // Publicaciones filtradas — se recalcula cuando cambia radio, filtro o userPos
-  const centro = userPos || { lat: -33.4569, lng: -70.6483 };
+  // Publicaciones filtradas por texto
   const pubs = todasPubs.filter(p => {
     if (filtro && !p.nombre_insumo?.toLowerCase().includes(filtro.toLowerCase())) return false;
-    if (p.latitud && p.longitud) {
-      return distKm(centro.lat, centro.lng, p.latitud, p.longitud) <= radio;
-    }
-    return true; // sin coordenadas: mostrar siempre
+    return true;
   });
+
+
 
   // ── Cargar TODAS las publicaciones activas ─────────────────────────────
   useEffect(() => {
@@ -79,7 +77,7 @@ export default function MapScreen({ user, onBack }) {
     if (!document.getElementById("rescat-marker-style")) {
       const s = document.createElement("style");
       s.id = "rescat-marker-style";
-      s.textContent = `@keyframes ringPulse { 0%{transform:scale(1);opacity:0.5;} 100%{transform:scale(3.5);opacity:0;} }`;
+      s.textContent = `@keyframes ringPulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.5;} 100%{transform:translate(-50%,-50%) scale(3.5);opacity:0;} }`;
       document.head.appendChild(s);
     }
     if (map.current) return;
@@ -114,22 +112,24 @@ export default function MapScreen({ user, onBack }) {
         const glow = isCompartir ? "rgba(120,144,208,0.5)" : "rgba(236,103,101,0.5)";
         const delay = (Math.random() * 1.5).toFixed(2);
 
-        // Ring separado (visual, sin afectar anchor)
-        const ringEl = document.createElement("div");
-        ringEl.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};opacity:0;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;`;
-        const ringMarker = new mapboxgl.Marker({ element: ringEl, anchor: "center" })
-          .setLngLat([pub.longitud, pub.latitud])
-          .addTo(map.current);
-        markersRef.current.push(ringMarker);
+        // Un solo marcador con ring como hijo CSS
+        const markerEl = document.createElement("div");
+        markerEl.className = `rescat-marker rescat-marker-${pub.id}`;
+        markerEl.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};cursor:pointer;position:relative;`;
+        
+        const styleId = `style-${pub.id}`;
+        if (!document.getElementById(styleId)) {
+          const s = document.createElement("style");
+          s.id = styleId;
+          s.textContent = `.rescat-marker-${pub.id}::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);width:18px;height:18px;border-radius:50%;background:${color};opacity:0.4;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;}`;
+          document.head.appendChild(s);
+        }
 
-        // Dot clickable
-        const dot = document.createElement("div");
-        dot.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};cursor:pointer;`;
-        dot.addEventListener("click", () => {
+        markerEl.addEventListener("click", () => {
           setSelected(pub);
           map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
         });
-        const marker = new mapboxgl.Marker({ element: dot, anchor: "center" })
+        const marker = new mapboxgl.Marker({ element: markerEl, anchor: "center" })
           .setLngLat([pub.longitud, pub.latitud])
           .addTo(map.current);
         markersRef.current.push(marker);
@@ -142,6 +142,19 @@ export default function MapScreen({ user, onBack }) {
       map.current.once("load", dibujarMarcadores);
     }
   }, [pubs]);
+
+  // ── Escalar marcadores según radio ────────────────────────────────────
+  useEffect(() => {
+    const sizeMap = { 2: 22, 5: 18, 10: 14, 50: 10 };
+    const size = sizeMap[radio] || 14;
+    markersRef.current.forEach(m => {
+      const el = m.getElement();
+      if (el.classList.contains("rescat-marker")) {
+        el.style.width = size + "px";
+        el.style.height = size + "px";
+      }
+    });
+  }, [radio]);
 
   const [liked, setLiked] = useState(new Set());
 
