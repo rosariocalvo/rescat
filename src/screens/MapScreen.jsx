@@ -79,7 +79,7 @@ export default function MapScreen({ user, onBack }) {
     if (!document.getElementById("rescat-marker-style")) {
       const s = document.createElement("style");
       s.id = "rescat-marker-style";
-      s.textContent = `@keyframes ringPulse { 0%{transform:translate(-50%,-50%) scale(1);opacity:0.4} 100%{transform:translate(-50%,-50%) scale(2.5);opacity:0} }`;
+      s.textContent = `@keyframes ringPulse { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(3);opacity:0} }`;
       document.head.appendChild(s);
     }
     if (map.current) return;
@@ -130,6 +130,9 @@ export default function MapScreen({ user, onBack }) {
           map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
         });
 
+        wrapper.style.cssText = "position:relative;width:18px;height:18px;cursor:pointer;overflow:visible;";
+        ring.style.cssText = `position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;background:${color};opacity:0.25;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;`;
+        dot.style.cssText = `position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};`;
         const marker = new mapboxgl.Marker({ element: wrapper, anchor: "center" })
           .setLngLat([pub.longitud, pub.latitud])
           .addTo(map.current);
