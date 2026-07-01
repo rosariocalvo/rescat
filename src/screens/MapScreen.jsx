@@ -79,7 +79,7 @@ export default function MapScreen({ user, onBack }) {
     if (!document.getElementById("rescat-marker-style")) {
       const s = document.createElement("style");
       s.id = "rescat-marker-style";
-      s.textContent = `@keyframes ringPulse { 0%{transform:scale(1);opacity:0.4} 100%{transform:scale(3);opacity:0} }`;
+      s.textContent = `@keyframes ringPulse { 0%{transform:scale(1);opacity:0.5;} 100%{transform:scale(3.5);opacity:0;} }`;
       document.head.appendChild(s);
     }
     if (map.current) return;
@@ -114,26 +114,22 @@ export default function MapScreen({ user, onBack }) {
         const glow = isCompartir ? "rgba(120,144,208,0.5)" : "rgba(236,103,101,0.5)";
         const delay = (Math.random() * 1.5).toFixed(2);
 
-        const wrapper = document.createElement("div");
-        wrapper.style.cssText = "position:relative;width:32px;height:32px;cursor:pointer;";
+        // Ring separado (visual, sin afectar anchor)
+        const ringEl = document.createElement("div");
+        ringEl.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};opacity:0;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;`;
+        const ringMarker = new mapboxgl.Marker({ element: ringEl, anchor: "center" })
+          .setLngLat([pub.longitud, pub.latitud])
+          .addTo(map.current);
+        markersRef.current.push(ringMarker);
 
-        const ring = document.createElement("div");
-        ring.style.cssText = `position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:${color};opacity:0.3;animation:ringPulse 2s ease-out ${delay}s infinite;`;
-
+        // Dot clickable
         const dot = document.createElement("div");
-        dot.style.cssText = `position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:20px;height:20px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};`;
-
-        wrapper.appendChild(ring);
-        wrapper.appendChild(dot);
-        wrapper.addEventListener("click", () => {
+        dot.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};cursor:pointer;`;
+        dot.addEventListener("click", () => {
           setSelected(pub);
           map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
         });
-
-        wrapper.style.cssText = "position:relative;width:18px;height:18px;cursor:pointer;overflow:visible;";
-        ring.style.cssText = `position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;background:${color};opacity:0.25;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;`;
-        dot.style.cssText = `position:absolute;top:0;left:0;width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};`;
-        const marker = new mapboxgl.Marker({ element: wrapper, anchor: "center" })
+        const marker = new mapboxgl.Marker({ element: dot, anchor: "center" })
           .setLngLat([pub.longitud, pub.latitud])
           .addTo(map.current);
         markersRef.current.push(marker);
