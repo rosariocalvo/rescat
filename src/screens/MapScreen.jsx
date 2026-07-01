@@ -103,7 +103,7 @@ export default function MapScreen({ user, onBack }) {
       if (!pub.latitud) return; // sin coordenadas no mostrar en mapa
       const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
       const el = document.createElement("div");
-      el.style.cssText = `width:14px;height:14px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.2);cursor:pointer;`;
+      el.style.cssText = `width:26px;height:26px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out infinite;`;
       el.addEventListener("click", () => {
         setSelected(pub);
         map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
@@ -136,7 +136,7 @@ export default function MapScreen({ user, onBack }) {
     <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"white", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
-        @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(30,42,74,0.4)} 70%{box-shadow:0 0 0 10px rgba(30,42,74,0)} 100%{box-shadow:0 0 0 0 rgba(30,42,74,0)} }
+        @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(30,42,74,0.4)} 70%{box-shadow:0 0 0 10px rgba(30,42,74,0)} 100%{box-shadow:0 0 0 0 rgba(30,42,74,0)} } @keyframes markerPulse { 0%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0.5)} 50%{transform:scale(1.15);box-shadow:0 0 0 8px rgba(120,144,208,0)} 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0)} }
         .mapboxgl-ctrl-attrib { display:none !important; }
         .mapboxgl-ctrl-bottom-right { bottom:80px !important; }
       `}</style>
