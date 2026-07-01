@@ -75,6 +75,13 @@ export default function MapScreen({ user, onBack }) {
 
   // ── Init mapa ──────────────────────────────────────────────────────────
   useEffect(() => {
+    // Inject pulse keyframe for markers
+    if (!document.getElementById("rescat-marker-style")) {
+      const s = document.createElement("style");
+      s.id = "rescat-marker-style";
+      s.textContent = `@keyframes markerPulse { 0%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0.6)} 50%{transform:scale(1.2);box-shadow:0 0 0 10px rgba(120,144,208,0)} 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0)} }`;
+      document.head.appendChild(s);
+    }
     if (map.current) return;
     mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
     map.current = new mapboxgl.Map({
@@ -103,7 +110,8 @@ export default function MapScreen({ user, onBack }) {
       if (!pub.latitud) return; // sin coordenadas no mostrar en mapa
       const color = pub.tipo === "compartir" ? "#7890D0" : "#EC6765";
       const el = document.createElement("div");
-      el.style.cssText = `width:26px;height:26px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out infinite;`;
+      const delay = Math.random() * 2;
+      el.style.cssText = `width:28px;height:28px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 12px rgba(0,0,0,0.25);cursor:pointer;animation:markerPulse 2s ease-in-out ${delay}s infinite;`;
       el.addEventListener("click", () => {
         setSelected(pub);
         map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
