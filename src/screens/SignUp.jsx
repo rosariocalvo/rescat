@@ -34,11 +34,14 @@ export default function SignUp({ onBack, onSignIn, onSuccess }) {
       return;
     }
     setLoading(true);
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: { data: { nombre_completo: nombre, rut } },
     });
+    if (!authError && authData?.user) {
+      await supabase.from("perfiles").upsert({ user_id: authData.user.id, nombre }, { onConflict: "user_id" });
+    }
     setLoading(false);
     if (authError) {
       setError(authError.message === "User already registered"

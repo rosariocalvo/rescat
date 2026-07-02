@@ -27,11 +27,13 @@ export default function SignIn({ onBack, onSignUp, onSuccess }) {
       return;
     }
     setLoading(true);
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (authError) {
       setError("Correo o contraseña incorrectos. Intenta de nuevo.");
     } else {
+      const nombre = authData?.user?.user_metadata?.nombre_completo || authData?.user?.user_metadata?.nombre || null;
+      if (nombre) await supabase.from("perfiles").upsert({ user_id: authData.user.id, nombre }, { onConflict: "user_id" });
       onSuccess && onSuccess();
     }
   };
