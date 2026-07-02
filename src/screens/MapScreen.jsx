@@ -75,34 +75,6 @@ export default function MapScreen({ user, onBack }) {
     });
   }, []);
 
-  // ── Cargar y mostrar ubicaciones de usuarios en el mapa ───────────────
-  useEffect(() => {
-    if (!map.current) return;
-
-    async function cargarUsuarios() {
-      const { data } = await supabase.from("ubicaciones_usuarios")
-        .select("*")
-        .neq("user_id", user?.id);
-      if (!data) return;
-
-      usuariosMarkersRef.current.forEach(m => m.remove());
-      usuariosMarkersRef.current = [];
-
-      data.forEach(u => {
-        if (!u.latitud || !u.longitud) return;
-        const el = document.createElement("div");
-        el.style.cssText = "width:12px;height:12px;border-radius:50%;background:#63D8B1;border:2px solid white;box-shadow:0 1px 6px rgba(99,216,177,0.4);";
-        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
-          .setLngLat([u.longitud, u.latitud])
-          .addTo(map.current);
-        usuariosMarkersRef.current.push(marker);
-      });
-    }
-
-    if (map.current.loaded()) cargarUsuarios();
-    else map.current.once("load", cargarUsuarios);
-  }, []);
-
   // ── Realtime ───────────────────────────────────────────────────────────
   useEffect(() => {
     const ch = supabase.channel("mapa-rt")
@@ -138,6 +110,17 @@ export default function MapScreen({ user, onBack }) {
       const el = document.createElement("div");
       el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;animation:pulse 2s infinite;";
       new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
+    });
+
+    map.current.on("load", async () => {
+      const { data } = await supabase.from("ubicaciones_usuarios").select("*").neq("user_id", user?.id || "");
+      if (!data) return;
+      data.forEach(u => {
+        if (!u.latitud || !u.longitud) return;
+        const el = document.createElement("div");
+        el.style.cssText = "width:12px;height:12px;border-radius:50%;background:#63D8B1;border:2px solid white;box-shadow:0 1px 6px rgba(99,216,177,0.4);cursor:default;";
+        new mapboxgl.Marker({ element: el, anchor: "center" }).setLngLat([u.longitud, u.latitud]).addTo(map.current);
+      });
     });
   }, []);
 
