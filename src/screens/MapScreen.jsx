@@ -182,6 +182,17 @@ export default function MapScreen({ user, onBack }) {
   }, [radio]);
 
   const [liked, setLiked] = useState(new Set());
+  const [perfilCache, setPerfilCache] = useState({});
+
+  async function fetchPerfil(userId) {
+    if (!userId || perfilCache[userId] !== undefined) return;
+    const { data } = await supabase.from("perfiles").select("nombre, foto_url").eq("user_id", userId).single();
+    setPerfilCache(prev => ({ ...prev, [userId]: data || null }));
+  }
+
+  useEffect(() => {
+    if (selected?.user_id) fetchPerfil(selected.user_id);
+  }, [selected]);
 
   function toggleLike(id) {
     setLiked(prev => {
@@ -295,64 +306,69 @@ export default function MapScreen({ user, onBack }) {
 
 
         {/* Card seleccionada */}
-        {selected && (
-          <div style={{ position:"absolute", bottom:80, left:12, right:12, zIndex:20, background:"white", borderRadius:20, boxShadow:"0 8px 32px rgba(30,42,74,0.15)", overflow:"hidden" }}>
-            {/* Badge cercano */}
-            <div style={{ background:"#1e2a4a", padding:"8px 16px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <span style={{ fontSize:11, fontWeight:700, color:"white", letterSpacing:"0.08em", fontFamily:"Outfit, sans-serif" }}>
-                CERCANO · {selected.latitud && userPos ? distKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1) : "0.0"} KM
-              </span>
-              <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", color:"white", fontSize:18, lineHeight:1, padding:0 }}>✕</button>
-            </div>
-            {/* Foto */}
-            {selected.foto_url && (
-              <img src={selected.foto_url} alt="" style={{ width:"100%", height:160, objectFit:"cover", display:"block" }} />
-            )}
-            {/* Contenido */}
-            <div style={{ padding:"14px 16px 16px" }}>
-              <p style={{ margin:"0 0 2px", fontSize:20, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}</p>
-              <p style={{ margin:"0 0 14px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif" }}>
-                {selected.anonimo ? "Anónimo" : (selected.nombre_usuario || "Miembro RESCAT")}
-                {selected.cantidad ? " · " + selected.cantidad : ""}
-              </p>
-              {selected.mensaje && (
-                <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4, fontStyle:"italic" }}>"{selected.mensaje}"</p>
-              )}
-              <div style={{ display:"flex", gap:10, alignItems:"center" }}>
-                <button onClick={async () => {
-                  if (!user) return;
-                  if (selected.user_id === user.id) { alert("Esta es tu propia publicación."); return; }
-                  try {
-                    const { data: existing } = await supabase.from("mensajes").select("id")
-                      .eq("publicacion_id", selected.id)
-                      .eq("remitente_id", user.id)
-                      .limit(1);
-                    if (!existing || existing.length === 0) {
-                      const { error } = await supabase.from("mensajes").insert({
-                        publicacion_id: selected.id,
-                        remitente_id: user.id,
-                        destinatario_id: selected.user_id,
-                        contenido: "Hola, me interesa tu publicación de " + selected.nombre_insumo + " 👋",
-                      });
-                      if (error) { alert("Error: " + error.message); return; }
-                    }
-                    window.dispatchEvent(new CustomEvent("openCanjes"));
-                  } catch(e) { alert("Error: " + e.message); }
-                }} style={{ flex:1, padding:"13px", background:"white", color:"#1e2a4a", border:"1.5px solid #1e2a4a", borderRadius:50, fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
-                  Reservar canje
-                </button>
-                <button onClick={() => toggleLike(selected.id)} style={{ width:46, height:46, borderRadius:"50%", background: liked.has(selected.id) ? "#EC6765" : "white", border: liked.has(selected.id) ? "none" : "1.5px solid #e0e0e8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"
-                      fill={liked.has(selected.id) ? "white" : "none"}
-                      stroke={liked.has(selected.id) ? "none" : "#EC6765"}
-                      strokeWidth="1.8" strokeLinejoin="round"/>
-                  </svg>
-                </button>
+        {selected && (() => {
+          const perfil = perfilCache[selected.user_id];
+          const nombreUsuario = selected.anonimo ? "Anónimo" : (perfil?.nombre || selected.nombre_usuario || "Miembro RESCAT");
+          const distancia = selected.latitud && userPos ? distKm(userPos.lat, userPos.lng, selected.latitud, selected.longitud).toFixed(1) : "0.0";
+          return (
+            <div style={{ position:"absolute", bottom:80, left:12, right:12, zIndex:20, background:"white", borderRadius:20, boxShadow:"0 8px 32px rgba(30,42,74,0.15)", overflow:"hidden" }}>
+              {/* Header usuario */}
+              <div style={{ padding:"12px 16px 10px", display:"flex", alignItems:"center", gap:10, borderBottom:"1px solid #f0f0f5" }}>
+                <div style={{ width:38, height:38, borderRadius:"50%", background:"#e8eaf0", overflow:"hidden", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  {perfil?.foto_url
+                    ? <img src={perfil.foto_url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                    : <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="#b0b8d0" strokeWidth="1.5"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#b0b8d0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  }
+                </div>
+                <div style={{ flex:1 }}>
+                  <p style={{ margin:0, fontSize:14, fontWeight:700, color:"#7890D0", fontFamily:"Outfit, sans-serif" }}>{nombreUsuario}</p>
+                  <div style={{ display:"flex", alignItems:"center", gap:4 }}>
+                    {[1,2,3,4,5].map(s => <svg key={s} width="10" height="10" viewBox="0 0 24 24" fill={s<=4?"#f59e0b":"none"}><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="#f59e0b" strokeWidth="1.5"/></svg>)}
+                    <span style={{ fontSize:11, color:"#f59e0b", fontWeight:700, marginLeft:2 }}>4.7</span>
+                  </div>
+                </div>
+                <div style={{ textAlign:"right" }}>
+                  <p style={{ margin:0, fontSize:10, fontWeight:700, color:"#b0b8d0", letterSpacing:"0.06em", fontFamily:"Outfit, sans-serif" }}>CERCANO · {distancia} KM</p>
+                </div>
+                <button onClick={() => setSelected(null)} style={{ background:"transparent", border:"none", cursor:"pointer", color:"#b0b8d0", fontSize:18, padding:0, marginLeft:4 }}>✕</button>
+              </div>
+              {/* Foto insumo */}
+              {selected.foto_url
+                ? <img src={selected.foto_url} alt="" style={{ width:"100%", height:140, objectFit:"cover", display:"block" }} />
+                : <div style={{ width:"100%", height:100, display:"flex", alignItems:"center", justifyContent:"center", background:"#f5f6fc" }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" stroke="#c8cce8" strokeWidth="1.5"/><circle cx="12" cy="13" r="4" stroke="#c8cce8" strokeWidth="1.5"/></svg>
+                  </div>
+              }
+              {/* Contenido */}
+              <div style={{ padding:"12px 16px 14px" }}>
+                <p style={{ margin:"0 0 2px", fontSize:17, fontWeight:700, color:"#1e2a4a", fontFamily:"Outfit, sans-serif" }}>{selected.nombre_insumo}{selected.cantidad ? ` · ${selected.cantidad}` : ""}</p>
+                <p style={{ margin:"0 0 12px", fontSize:12, color: selected.tipo==="compartir" ? "#7890D0" : "#EC6765", fontWeight:600, fontFamily:"Outfit, sans-serif" }}>
+                  {selected.tipo === "compartir" ? "Compartiendo Insumo" : "Solicitando Insumo"}
+                </p>
+                {selected.mensaje && <p style={{ margin:"0 0 12px", fontSize:13, color:"#7b80a0", fontStyle:"italic" }}>"{selected.mensaje}"</p>}
+                <div style={{ display:"flex", gap:10, alignItems:"center" }}>
+                  <button onClick={async () => {
+                    if (!user) return;
+                    if (selected.user_id === user.id) { alert("Esta es tu propia publicación."); return; }
+                    try {
+                      const { data: existing } = await supabase.from("mensajes").select("id").eq("publicacion_id", selected.id).eq("remitente_id", user.id).limit(1);
+                      if (!existing || existing.length === 0) {
+                        const { error } = await supabase.from("mensajes").insert({ publicacion_id: selected.id, remitente_id: user.id, destinatario_id: selected.user_id, contenido: "Hola, me interesa tu publicación de " + selected.nombre_insumo + " 👋" });
+                        if (error) { alert("Error: " + error.message); return; }
+                      }
+                      window.dispatchEvent(new CustomEvent("openCanjes"));
+                    } catch(e) { alert("Error: " + e.message); }
+                  }} style={{ flex:1, padding:"13px", background:"white", color:"#1e2a4a", border:"1.5px solid #1e2a4a", borderRadius:50, fontWeight:600, fontSize:14, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
+                    Reservar canje
+                  </button>
+                  <button onClick={() => toggleLike(selected.id)} style={{ width:46, height:46, borderRadius:"50%", background:liked.has(selected.id)?"#EC6765":"white", border:liked.has(selected.id)?"none":"1.5px solid #e0e0e8", display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" fill={liked.has(selected.id)?"white":"none"} stroke={liked.has(selected.id)?"none":"#EC6765"} strokeWidth="1.8" strokeLinejoin="round"/></svg>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       {/* BottomNav */}
