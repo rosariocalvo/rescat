@@ -108,7 +108,7 @@ export default function MapScreen({ user, onBack }) {
       setUserPos({ lat, lng });
       map.current.flyTo({ center: [lng, lat], zoom: 14 });
       const el = document.createElement("div");
-      el.style.cssText = "width:16px;height:16px;border-radius:50%;background:#1e2a4a;border:3px solid white;animation:pulse 2s infinite;";
+      el.style.cssText = "width:14px;height:14px;border-radius:50%;background:#63D8B1;border:2.5px solid white;box-shadow:0 1px 6px rgba(99,216,177,0.5);";
       new mapboxgl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map.current);
     });
 
