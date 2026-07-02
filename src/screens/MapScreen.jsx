@@ -43,6 +43,7 @@ export default function MapScreen({ user, onBack }) {
   const [userPos,   setUserPos]   = useState(null);
 
   const nombre    = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || "Usuario";
+  const usuariosMarkersRef = useRef([]);
   const dc        = user?.user_metadata?.dc || 240;
   const firstName = nombre.split(" ")[0].toUpperCase();
 
@@ -58,6 +59,48 @@ export default function MapScreen({ user, onBack }) {
   useEffect(() => {
     supabase.from("publicaciones").select("*").eq("estado","activa")
       .then(({ data }) => { if (data) setTodasPubs(data); });
+  }, []);
+
+  // ── Guardar ubicación del usuario y cargar ubicaciones de todos ─────────
+  useEffect(() => {
+    if (!user) return;
+    navigator.geolocation?.getCurrentPosition(async (pos) => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      await supabase.from("ubicaciones_usuarios").upsert({
+        user_id: user.id,
+        latitud: lat,
+        longitud: lng,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+    });
+  }, []);
+
+  // ── Cargar y mostrar ubicaciones de usuarios en el mapa ───────────────
+  useEffect(() => {
+    if (!map.current) return;
+
+    async function cargarUsuarios() {
+      const { data } = await supabase.from("ubicaciones_usuarios")
+        .select("*")
+        .neq("user_id", user?.id);
+      if (!data) return;
+
+      usuariosMarkersRef.current.forEach(m => m.remove());
+      usuariosMarkersRef.current = [];
+
+      data.forEach(u => {
+        if (!u.latitud || !u.longitud) return;
+        const el = document.createElement("div");
+        el.style.cssText = "width:12px;height:12px;border-radius:50%;background:#63D8B1;border:2px solid white;box-shadow:0 1px 6px rgba(99,216,177,0.4);";
+        const marker = new mapboxgl.Marker({ element: el, anchor: "center" })
+          .setLngLat([u.longitud, u.latitud])
+          .addTo(map.current);
+        usuariosMarkersRef.current.push(marker);
+      });
+    }
+
+    if (map.current.loaded()) cargarUsuarios();
+    else map.current.once("load", cargarUsuarios);
   }, []);
 
   // ── Realtime ───────────────────────────────────────────────────────────
