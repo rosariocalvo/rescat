@@ -143,61 +143,6 @@ function PublicarMenu({ user, onSelectCompartir, onSelectAyudar }) {
   );
 }
 
-
-function UbicacionInput({ value, onChange, onCoordsChange, inputStyle, labelStyle }) {
-  const [sugerencias, setSugerencias] = useState([]);
-  const [showDrop, setShowDrop] = useState(false);
-  const token = import.meta.env.VITE_MAPBOX_TOKEN;
-
-  async function buscar(texto) {
-    onChange(texto);
-    if (texto.length < 3) { setSugerencias([]); return; }
-    try {
-      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(texto)}.json?country=cl&language=es&limit=5&access_token=${token}`);
-      const data = await res.json();
-      setSugerencias(data.features || []);
-      setShowDrop(true);
-    } catch {}
-  }
-
-  function elegir(f) {
-    onChange(f.place_name);
-    onCoordsChange({ lat: f.center[1], lng: f.center[0] });
-    setSugerencias([]);
-    setShowDrop(false);
-  }
-
-  return (
-    <div style={{ position: "relative" }}>
-      <label style={labelStyle}>Ubicación</label>
-      <div style={{ position: "relative" }}>
-        <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none", zIndex:1 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
-        </span>
-        <input
-          style={{ ...inputStyle, paddingLeft: 44 }}
-          value={value}
-          onChange={e => buscar(e.target.value)}
-          onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-          onFocus={() => sugerencias.length > 0 && setShowDrop(true)}
-          placeholder="Ej: Av. Apoquindo 4500, Las Condes"
-          required
-        />
-      </div>
-      {showDrop && sugerencias.length > 0 && (
-        <div style={{ position:"absolute", top:"100%", left:0, right:0, background:"white", borderRadius:14, boxShadow:"0 4px 20px rgba(30,42,74,0.14)", zIndex:100, overflow:"hidden", marginTop:4 }}>
-          {sugerencias.map((f, i) => (
-            <div key={i} onMouseDown={() => elegir(f)} style={{ padding:"12px 16px", fontSize:13, color:"#1e2a4a", fontFamily:"Outfit, sans-serif", borderBottom:"1px solid #f0f0f5", cursor:"pointer", display:"flex", gap:10, alignItems:"flex-start" }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink:0, marginTop:2 }}><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#7890D0"/></svg>
-              <span>{f.place_name}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function FormCompartir({ user, onBack, onSuccess }) {
   const [tipoInsumo, setTipoInsumo] = useState("");
   const [tipoCustom, setTipoCustom] = useState("");
@@ -205,7 +150,6 @@ function FormCompartir({ user, onBack, onSuccess }) {
   const [cantidad, setCantidad] = useState("");
   const [fechaVenc, setFechaVenc] = useState("");
   const [ubicacion, setUbicacion] = useState("");
-  const [ubicacionCoords, setUbicacionCoords] = useState(null);
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -227,9 +171,13 @@ function FormCompartir({ user, onBack, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!ubicacionCoords) { alert("Por favor selecciona una dirección de la lista."); return; }
     setLoading(true);
-    let lat = ubicacionCoords.lat, lng = ubicacionCoords.lng, fotoUrl = null;
+    let lat = null, lng = null, fotoUrl = null;
+    try {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 }));
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    } catch {}
     if (fotoFile) {
       const ext = fotoFile.name.split(".").pop();
       const path = `insumos/${user.id}_${Date.now()}.${ext}`;
@@ -347,7 +295,22 @@ function FormCompartir({ user, onBack, onSuccess }) {
             </div>
           </div>
           <div style={{ marginBottom: 28 }}>
-            <UbicacionInput value={ubicacion} onChange={setUbicacion} onCoordsChange={setUbicacionCoords} inputStyle={inputStyle} labelStyle={labelStyle} />
+            <label style={labelStyle}>Ubicación</label>
+            <div style={{ position: "relative" }}>
+              <span style={{ position:"absolute", left:16, top:"50%", transform:"translateY(-50%)", pointerEvents:"none" }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#7b80a0"/></svg>
+              </span>
+              <input style={{ ...inputStyle, paddingLeft: 44, paddingRight: 44 }} value={ubicacion} onChange={e => setUbicacion(e.target.value)} placeholder="Las Condes, Santiago" />
+              <span style={{ position:"absolute", right:16, top:"50%", transform:"translateY(-50%)", cursor:"pointer" }}
+                onClick={async () => {
+                  try {
+                    const pos = await new Promise((res,rej) => navigator.geolocation.getCurrentPosition(res,rej));
+                    setUbicacion(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+                  } catch {}
+                }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="#7890D0" strokeWidth="1.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#7890D0" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </span>
+            </div>
           </div>
           <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#1e2a4a", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
             {loading ? "Publicando..." : "Publicar insumo"}
@@ -365,8 +328,6 @@ function FormAyudar({ user, onBack, onSuccess }) {
   const [mensaje, setMensaje] = useState("");
   const [anonimo, setAnonimo] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [ubicacion, setUbicacion] = useState("");
-  const [ubicacionCoords, setUbicacionCoords] = useState(null);
   const dc = user?.user_metadata?.dc || 240;
 
   const dcPorTipo = { "Insulina": 80, "Sensor CGM": 120, "Bomba de insulina": 200, "Tiras reactivas": 30, "Lancetas": 15, "Glucómetro": 60, "Otro": 25 };
@@ -375,10 +336,13 @@ function FormAyudar({ user, onBack, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!ubicacionCoords) { alert("Por favor selecciona una dirección de la lista."); return; }
     setLoading(true);
-    let lat = ubicacionCoords.lat, lng = ubicacionCoords.lng;
-    const nombreUsuario = user?.user_metadata?.nombre_completo || user?.user_metadata?.nombre || null;
+    let lat = null, lng = null;
+    try {
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { timeout: 8000 }));
+      lat = pos.coords.latitude;
+      lng = pos.coords.longitude;
+    } catch {}
     const { error } = await supabase.from("publicaciones").insert({
       user_id: user.id,
       tipo: "solicitar",
@@ -389,7 +353,6 @@ function FormAyudar({ user, onBack, onSuccess }) {
       latitud: lat,
       longitud: lng,
       estado: "activa",
-      nombre_usuario: anonimo ? null : nombreUsuario,
     });
     setLoading(false);
     if (error) { alert("Error: " + error.message); return; }
@@ -481,9 +444,6 @@ function FormAyudar({ user, onBack, onSuccess }) {
             </div>
             {anonimo && <p style={{ margin:"10px 0 0", fontSize:12, color:"#7b80a0", fontFamily:"Outfit, sans-serif", lineHeight:1.4 }}>Tu identidad permanecerá oculta hasta que un miembro acepte ayudarte.</p>}
           </div>
-          <div style={{ marginBottom: 20 }}>
-            <UbicacionInput value={ubicacion} onChange={setUbicacion} onCoordsChange={setUbicacionCoords} inputStyle={inputStyle} labelStyle={labelStyle} />
-          </div>
           <button type="submit" disabled={loading} style={{ width:"100%", padding:18, background:"#EC6765", color:"white", border:"none", borderRadius:50, fontWeight:700, fontSize:16, cursor:"pointer", fontFamily:"Outfit, sans-serif" }}>
             {loading ? "Publicando..." : "Solicitar ayuda"}
           </button>
@@ -508,7 +468,7 @@ function Confirmacion({ tipo, onNuevo, onInicio }) {
 export default function PublicarScreen({ user, onBack }) {
   const [view, setView] = useState("menu");
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5" }}>
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100dvh", background:"#f0f0f5" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
       {view==="menu" && <PublicarMenu user={user} onSelectCompartir={()=>setView("compartir")} onSelectAyudar={()=>setView("ayudar")}/>}
       {view==="compartir" && <FormCompartir user={user} onBack={()=>setView("menu")} onSuccess={()=>setView("ok_compartir")}/>}

@@ -82,7 +82,7 @@ function ChatScreen({ user, publicacion, otroNombre, onBack }) {
   const formatHora = (iso) => new Date(iso).toLocaleTimeString("es-CL", { hour:"2-digit", minute:"2-digit" });
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"#f0f0f5", display:"flex", flexDirection:"column", fontFamily:"Outfit, sans-serif" }}>
+    <div style={{ maxWidth:430, margin:"0 auto", height:"100dvh", background:"#f0f0f5", display:"flex", flexDirection:"column", fontFamily:"Outfit, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
       <div style={{ padding:"52px 24px 16px", background:"white", display:"flex", alignItems:"center", gap:14, boxShadow:"0 1px 8px rgba(30,42,74,0.06)", flexShrink:0 }}>
         <button onClick={onBack} style={{ background:"#f0f0f5", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer" }}>
@@ -212,7 +212,7 @@ export default function CanjesScreen({ user, onBack }) {
   }
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100dvh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
 
       {/* Header */}

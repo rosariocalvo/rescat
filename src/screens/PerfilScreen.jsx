@@ -62,7 +62,7 @@ function BilleteraScreen({ user, dc, onBack }) {
   }
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100dvh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');`}</style>
       <div style={{ padding:"52px 24px 20px", display:"flex", alignItems:"center", gap:14 }}>
         <button onClick={onBack} style={{ background:"white", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.08)" }}>
@@ -175,7 +175,7 @@ function EditarPerfilScreen({ user, onBack, onSaved }) {
   const labelStyle = { fontSize:12, fontWeight:600, color:"#7b80a0", marginBottom:6, display:"block", fontFamily:"Outfit, sans-serif" };
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:40 }}>
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100dvh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:40 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');`}</style>
       <div style={{ padding:"52px 24px 24px", display:"flex", alignItems:"center", gap:14 }}>
         <button onClick={onBack} style={{ background:"white", border:"none", borderRadius:12, width:40, height:40, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", boxShadow:"0 1px 6px rgba(30,42,74,0.08)" }}>
@@ -256,7 +256,7 @@ export default function PerfilScreen({ user, onSignOut, onBack }) {
   if (subscreen === "editar") return <EditarPerfilScreen user={userData} onBack={() => setSubscreen("perfil")} onSaved={recargarUsuario} />;
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100vh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
+    <div style={{ maxWidth:430, margin:"0 auto", minHeight:"100dvh", background:"#f0f0f5", fontFamily:"Outfit, sans-serif", paddingBottom:90 }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');`}</style>
 
       <div style={{ padding:"52px 24px 0" }}>

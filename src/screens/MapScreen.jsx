@@ -213,7 +213,7 @@ export default function MapScreen({ user, onBack }) {
   const tiposFiltrados = TIPOS.filter(t => textoBusq ? t.toLowerCase().includes(textoBusq.toLowerCase()) : true);
 
   return (
-    <div style={{ maxWidth:430, margin:"0 auto", height:"100vh", background:"white", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
+    <div style={{ maxWidth:430, margin:"0 auto", height:"100dvh", background:"white", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden", fontFamily:"Outfit, sans-serif" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap');
         @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(30,42,74,0.4)} 70%{box-shadow:0 0 0 10px rgba(30,42,74,0)} 100%{box-shadow:0 0 0 0 rgba(30,42,74,0)} } @keyframes markerPulse { 0%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0.5)} 50%{transform:scale(1.15);box-shadow:0 0 0 8px rgba(120,144,208,0)} 100%{transform:scale(1);box-shadow:0 0 0 0 rgba(120,144,208,0)} }
