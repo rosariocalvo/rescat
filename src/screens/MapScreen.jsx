@@ -112,19 +112,10 @@ export default function MapScreen({ user, onBack }) {
         const glow = isCompartir ? "rgba(120,144,208,0.5)" : "rgba(236,103,101,0.5)";
         const delay = (Math.random() * 1.5).toFixed(2);
 
-        // Un solo marcador con ring como hijo CSS
+        // Dot — marcador principal
         const markerEl = document.createElement("div");
         markerEl.className = `rescat-marker rescat-marker-${pub.id}`;
-        markerEl.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};cursor:pointer;position:relative;`;
-        
-        const styleId = `style-${pub.id}`;
-        if (!document.getElementById(styleId)) {
-          const s = document.createElement("style");
-          s.id = styleId;
-          s.textContent = `.rescat-marker-${pub.id}::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(1);width:18px;height:18px;border-radius:50%;background:${color};opacity:0.4;animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;}`;
-          document.head.appendChild(s);
-        }
-
+        markerEl.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};border:2.5px solid white;box-shadow:0 2px 10px ${glow};cursor:pointer;`;
         markerEl.addEventListener("click", () => {
           setSelected(pub);
           map.current.flyTo({ center: [pub.longitud, pub.latitud], zoom: 15, duration: 500 });
@@ -133,6 +124,14 @@ export default function MapScreen({ user, onBack }) {
           .setLngLat([pub.longitud, pub.latitud])
           .addTo(map.current);
         markersRef.current.push(marker);
+
+        // Ring — elemento separado con width/height 0 para no afectar layout
+        const ringEl = document.createElement("div");
+        ringEl.style.cssText = `width:0;height:0;border-radius:50%;position:absolute;top:0;left:0;pointer-events:none;`;
+        const inner = document.createElement("div");
+        inner.style.cssText = `width:18px;height:18px;border-radius:50%;background:${color};opacity:0.4;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);animation:ringPulse 2s ease-out ${delay}s infinite;pointer-events:none;`;
+        ringEl.appendChild(inner);
+        markerEl.appendChild(ringEl);
       });
     }
 
